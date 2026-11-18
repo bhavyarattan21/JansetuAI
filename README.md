@@ -1,4 +1,4 @@
-# JanSetuAI — Localhost Demo
+# JanSetuAI —
 
 JanSetuAI is an AI-powered civic-service interface designed as a hackathon demo.
 
@@ -15,7 +15,7 @@ npm install
 npm run dev
 ```
 
-Then open the localhost URL shown by Vite (normally https://jansetu-ai-eight-theta.vercel.app/).
+Deployed- (normally https://jansetu-ai-eight-theta.vercel.app/).
 
 ## Included demo flows
 
