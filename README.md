@@ -15,7 +15,7 @@ npm install
 npm run dev
 ```
 
-Then open the localhost URL shown by Vite (normally http://localhost:5173).
+Then open the localhost URL shown by Vite (normally https://jansetu-ai-eight-theta.vercel.app/).
 
 ## Included demo flows
 
