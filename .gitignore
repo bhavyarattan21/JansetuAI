@@ -1,5 +1,10 @@
-# Local personal databases
+# Private Local Databases & Personal Records
 data/
+data/users.json
+data/grievances.json
+*.json.local
+
+# Environment variables & secrets
 .env
 .env.*
 !.env.example
