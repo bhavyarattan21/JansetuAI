@@ -905,9 +905,9 @@ function App(){
   const [toast, setToast] = useState("");
 
   useEffect(() => {
-    // Sync with disk database on launch
+    // Sync with disk database on launch (local dev) or use persistent storage
     fetch('/api/grievances')
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setGrievances(data);
