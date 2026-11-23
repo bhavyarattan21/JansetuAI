@@ -1,7 +1,7 @@
-# Private Local Databases & Personal Records
-data/
-data/users.json
-data/grievances.json
+# Private Local Databases & Personal Records (Root only)
+/data/
+/data/users.json
+/data/grievances.json
 *.json.local
 
 # Environment variables & secrets
