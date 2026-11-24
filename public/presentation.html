@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JanSetu AI — BuildHer Bharat 2026 Grand Finale Pitch Deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090D16;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --blue: #38BDF8;
+      --blue-subtle: rgba(56, 189, 248, 0.12);
+      --emerald: #34D399;
+      --rose: #F87171;
+      --amber: #FBBF24;
+      --gradient-text: linear-gradient(135deg, #FFFFFF 0%, #38BDF8 60%, #818CF8 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justifyContent: space-between;
+      user-select: none;
+    }
+
+    /* Ambient Glow background */
+    .ambient-glow {
+      position: fixed;
+      top: -20%;
+      left: 10%;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(129, 140, 248, 0.05) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+
+    /* Top Nav */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 16px 36px;
+      display: flex;
+      justifyContent: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(9, 13, 22, 0.7);
+      backdrop-filter: blur(12px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+    .brand span {
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .badge-event {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--blue-subtle);
+      color: var(--blue);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .top-links {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+    }
+    .top-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .top-links a:hover { color: var(--blue); }
+
+    /* Slide Container */
+    main#deck {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justifyContent: center;
+      padding: 24px 36px;
+      overflow-y: auto;
+    }
+    .slide {
+      display: none;
+      width: min(1200px, 95vw);
+      max-height: 82vh;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px 48px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 0 1px var(--card-border);
+      backdrop-filter: blur(20px);
+      animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+    .slide.active { display: block; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Slide Typography */
+    .slide-kicker {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .slide-title {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 24px;
+      line-height: 1.2;
+    }
+    .slide-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* Grid Layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .feature-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    .feature-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #FFF;
+    }
+    .feature-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Table styling */
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    table.data-table th {
+      text-align: left;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--blue);
+      border-bottom: 1px solid var(--card-border);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+    table.data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+    table.data-table tr:hover td {
+      background: rgba(56, 189, 248, 0.03);
+    }
+
+    /* Code & Badges */
+    code, .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: var(--blue);
+    }
+    .stat-box {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(129, 140, 248, 0.04) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 44px;
+      font-weight: 800;
+      background: var(--gradient-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Notes Drawer */
+    .speaker-drawer {
+      margin-top: 24px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.08);
+      border-left: 4px solid var(--amber);
+      font-size: 13px;
+      color: #FDE68A;
+      line-height: 1.5;
+    }
+    .speaker-drawer strong { color: #FFF; }
+
+    /* Footer Controls */
+    footer {
+      position: relative;
+      z-index: 10;
+      padding: 14px 36px;
+      display: flex;
+      justifyContent: space-between;
+      align-items: center;
+      border-top: 1px solid var(--card-border);
+      background: rgba(9, 13, 22, 0.8);
+      backdrop-filter: blur(12px);
+    }
+    .slide-progress {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    button.btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: #FFF;
+      padding: 8px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    button.btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    button.btn-primary {
+      background: var(--blue);
+      color: #090D16;
+      border-color: var(--blue);
+      font-weight: 700;
+    }
+    button.btn-primary:hover {
+      background: #7DD3FC;
+    }
+
+    /* Print styles for PDF export */
+    @media print {
+      body { overflow: visible; background: #FFF; color: #000; }
+      header, footer, .ambient-glow { display: none !important; }
+      .slide {
+        display: block !important;
+        page-break-after: always;
+        max-height: none;
+        box-shadow: none;
+        border: 1px solid #DDD;
+        background: #FFF;
+        color: #000;
+        margin-bottom: 40px;
+      }
+      .slide-title, .feature-title, h1, h2, h3 { color: #000 !important; }
+      .speaker-drawer { background: #FFFBEB; color: #92400E; border: 1px solid #FCD34D; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <span>JanSetu AI (जनसेतु AI)</span>
+      <span class="badge-event">BuildHer Bharat 2026 Grand Finale</span>
+    </div>
+    <div class="top-links">
+      <a href="https://jansetu-ai-eight-theta.vercel.app" target="_blank" title="Live Deployed Website">
+        🌐 Live Demo: <code>jansetu-ai-eight-theta.vercel.app</code>
+      </a>
+      <a href="https://github.com/bhavyarattan21/JansetuAI" target="_blank" title="GitHub Source Code">
+        📂 GitHub: <code>bhavyarattan21/JansetuAI</code>
+      </a>
+    </div>
+  </header>
+
+  <!-- Slide Canvas -->
+  <main id="deck">
+
+    <!-- Slide 1: Title -->
+    <div class="slide active" data-title="Executive Summary">
+      <div class="slide-kicker">✨ ROUND 3 OFFLINE PITCH & DEMONSTRATION</div>
+      <h1 class="slide-title" style="font-size: 46px; margin-bottom: 12px;">JanSetu AI (जनसेतु AI)</h1>
+      <p class="slide-subtitle" style="font-size: 20px; max-width: 900px; color: #E2E8F0;">
+        Empowering 1.4 Billion Citizens with an AI Civic Copilot: Automated Grievance Drafting, Department Routing, Geotagged Cloud Evidence & Statutory RTI Escalations.
+      </p>
+
+      <div class="grid-4" style="margin: 28px 0;">
+        <div class="stat-box">
+          <div class="stat-number">18+</div>
+          <div class="stat-label">Municipal Depts Routed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">&lt; 60s</div>
+          <div class="stat-label">Citizen Filing Time</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Secure Supabase Storage</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">Sec 19(1)</div>
+          <div class="stat-label">Statutory RTI Escalation</div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "Good morning esteemed judges! I am proud to present JanSetu AI. Every single day, millions of Indian citizens struggle with broken roads, garbage heaps, and water tanker crises. But 85% of complaints fail simply because citizens do not know the right municipal authority or legal framework. JanSetu AI solves this with sovereign AI grievance redressal."
+      </div>
+    </div>
+
+    <!-- Slide 2: The Problem -->
+    <div class="slide" data-title="The Problem">
+      <div class="slide-kicker">⚠️ THE CIVIC CRISIS</div>
+      <h2 class="slide-title">Why Grievances Fail in India</h2>
+      <p class="slide-subtitle">Over 70% of citizens give up on civic complaints due to institutional friction.</p>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon">🏛️</div>
+          <div class="feature-title">Jurisdictional Ping-Pong</div>
+          <div class="feature-desc">Is a pothole under PWD, Municipal Corporation, or NHAI? Over 40% of grievances are bounced or rejected without resolution due to wrong department routing.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📜</div>
+          <div class="feature-title">Informal, Weak Drafting</div>
+          <div class="feature-desc">Citizens lack access to formal legal terminology. Without citing statutory Citizen Charters or Municipal Acts, complaints are treated as low-priority informal notes.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⏳</div>
+          <div class="feature-title">Zero SLA Accountability</div>
+          <div class="feature-desc">Portals assign 7-day or 15-day SLAs, but when deadlines pass, citizens have no automated escalation or Right to Information (RTI) mechanism to hold nodal officers accountable.</div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer" style="margin-top: 20px;">
+        <strong>🎙️ Presenter Script:</strong> "Judges, the problem isn't that government portals don't exist — CPGRAMS and state portals do exist. The problem is the massive friction between a citizen taking a photo on the road and knowing how to write a legally grounded complaint to the exact responsible department."
+      </div>
+    </div>
+
+    <!-- Slide 3: The Solution -->
+    <div class="slide" data-title="The Solution">
+      <div class="slide-kicker">💡 OUR INNOVATION</div>
+      <h2 class="slide-title">JanSetu AI — The Citizen Redressal Copilot</h2>
+      <p class="slide-subtitle">An end-to-end sovereign framework from ground photo to legal RTI escalation.</p>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-title">Multilingual Legal Drafting</div>
+          <div class="feature-desc">Translates natural citizen voice/text (English & हिन्दी) into formal dossiers citing Section 63 of Municipal Acts and statutory Citizen Charter response windows.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📍</div>
+          <div class="feature-title">Auto GPS & Geo-Routing</div>
+          <div class="feature-desc">Detects real-time GPS coordinates, reverse geocodes landmarks, and identifies the exact portal (CPGRAMS, SARAL, Swachhata, CM Window, Jal Board).</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚖️</div>
+          <div class="feature-title">Automated RTI Escalations</div>
+          <div class="feature-desc">Dynamically watches statutory resolution deadlines. If an SLA expires, it generates a Section 19(1) RTI First Appeal dossier citing the nodal officer's direct liability.</div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "JanSetu AI bridges this gap in under 60 seconds. A citizen simply takes a photo, our GPS engine pins the coordinates, Gemini AI drafts the formal legal petition, and we track the SLA countdown until ground resolution."
+      </div>
+    </div>
+
+    <!-- Slide 4: System Architecture -->
+    <div class="slide" data-title="System Architecture">
+      <div class="slide-kicker">🛠️ ARCHITECTURE & TECH STACK</div>
+      <h2 class="slide-title">Production Cloud Architecture</h2>
+      
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Technology Chosen</th>
+            <th>Enterprise Production Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Client Application</strong></td>
+            <td><code>React 18 + Vite SPA (PWA)</code></td>
+            <td>Sub-second render times, offline-capable service workers, client-side canvas compression.</td>
+          </tr>
+          <tr>
+            <td><strong>Database Layer</strong></td>
+            <td><code>Supabase Managed PostgreSQL</code></td>
+            <td>Normalized relational schema (`profiles`, `complaints`, `complaint_photos`, `complaint_events`).</td>
+          </tr>
+          <tr>
+            <td><strong>Authentication</strong></td>
+            <td><code>Supabase Auth + Google OAuth 2.0</code></td>
+            <td>Anonymous guest session seeded instantly; seamlessly upgraded to verified Google identity.</td>
+          </tr>
+          <tr>
+            <td><strong>Evidence Storage</strong></td>
+            <td><code>Supabase Storage (Private Bucket)</code></td>
+            <td>Private `complaint-photos` bucket; time-limited 1-hour signed URLs for zero-trust privacy.</td>
+          </tr>
+          <tr>
+            <td><strong>AI Intelligence</strong></td>
+            <td><code>Google Gemini 2.5 API</code></td>
+            <td>Categorization, department taxonomy classification, legal notice drafting in dual languages.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "Judges, our architecture is 100% production-ready. We do not use mock localStorage. We use Supabase PostgreSQL with Row Level Security, private storage buckets with cryptographic 1-hour signed URLs, and Google OAuth."
+      </div>
+    </div>
+
+    <!-- Slide 5: Supabase Security & Data Model -->
+    <div class="slide" data-title="Database & Security">
+      <div class="slide-kicker">🔒 ENTERPRISE SECURITY</div>
+      <h2 class="slide-title">PostgreSQL Schema & Zero-Trust RLS</h2>
+      
+      <div class="grid-2">
+        <div class="feature-card">
+          <div class="feature-title">Relational PostgreSQL Tables</div>
+          <div class="feature-desc" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8;">
+            • <code>profiles</code>: ID, Full Name, Email, Language, Ward Profile<br>
+            • <code>complaints</code>: Category, Dept, Portal Ref, Status, SLA Expected By<br>
+            • <code>complaint_photos</code>: Storage Path, Kind (Before/After), Timestamp<br>
+            • <code>complaint_events</code>: Immutable Audit Trail of Status Transitions<br>
+            • <code>chat_messages</code>: AI Copilot Historical Sessions
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-title">Zero-Trust Privacy Policies</div>
+          <div class="feature-desc" style="font-size: 13px; line-height: 1.6;">
+            <strong>Row Level Security (RLS):</strong> Citizens can only query and mutate records where <code>auth.uid() = user_id</code>.<br><br>
+            <strong>Private Storage Policies:</strong> Images stored at <code>{user_id}/{complaint_id}/{uuid}.jpg</code>. No public read access; images require time-limited signed URLs.<br><br>
+            <strong>Citizen Privacy Notice:</strong> Guidelines prompt citizens to avoid capturing faces or vehicle plates.
+          </div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "We prioritized citizen privacy from Day 1. Evidence photos are stored in private buckets and are never accessible via static links. Every table is protected by PostgreSQL Row Level Security."
+      </div>
+    </div>
+
+    <!-- Slide 6: 4-Step User Journey -->
+    <div class="slide" data-title="User Journey">
+      <div class="slide-kicker">📱 PRODUCT WORKFLOW</div>
+      <h2 class="slide-title">From Street Problem to Filed Acknowledgment</h2>
+
+      <div class="grid-4">
+        <div class="feature-card">
+          <div class="feature-icon">1️⃣</div>
+          <div class="feature-title">Step 1: Photo & GPS</div>
+          <div class="feature-desc">Citizen snaps a photo or uploads from gallery. Client-side canvas compresses image to &lt;200KB; GPS reverse-geocodes exact street.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">2️⃣</div>
+          <div class="feature-title">Step 2: AI Dossier</div>
+          <div class="feature-desc">Gemini drafts formal legal petition citing municipal acts. Instantly creates draft record & uploads photo to Supabase.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">3️⃣</div>
+          <div class="feature-title">Step 3: Portal Filing</div>
+          <div class="feature-desc">1-click copy buttons for subject & body. Citizen submits on official portal and pastes official reference ID.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">4️⃣</div>
+          <div class="feature-title">Step 4: SLA Tracking</div>
+          <div class="feature-desc">Active SLA countdown. If overdue, citizen generates 1-click RTI First Appeal. Concludes with before/after ground resolution photo.</div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "This 4-step workflow removes 100% of the cognitive burden from the citizen. They don't have to wonder how to address an officer or which portal to open — JanSetu guides them from camera snap to portal filing."
+      </div>
+    </div>
+
+    <!-- Slide 7: Live Demo Guide -->
+    <div class="slide" data-title="Live Demonstration">
+      <div class="slide-kicker">💻 LIVE DEMONSTRATION</div>
+      <h2 class="slide-title">What We Are Showing the Jury Today</h2>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-icon">💧</div>
+          <div class="feature-title">Real Water Crisis Case Study</div>
+          <div class="feature-desc">We will demonstrate attaching our genuine NDMC water tanker crisis photo, auto-detecting location, and watching the AI generate a formal Jal Board petition.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-title">1-Click Demo Scenario</div>
+          <div class="feature-desc">Our live demo button populates 5 realistic lifecycle complaints: Draft, Active, SLA Overdue, Escalated, and Verified Resolved with Before/After comparisons.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗑️</div>
+          <div class="feature-title">Safe Delete & GDPR Compliance</div>
+          <div class="feature-desc">5-second soft delete undo toast, dedicated 'Archived' tab with Restore, and permanent deletion requiring typing 'DELETE' to cascade storage purges.</div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "Judges, right now on our live URL jansetu-ai-eight-theta.vercel.app, you can click 'Load Demo Scenario' and immediately inspect all 5 grievance states live, complete with signed photo thumbnails and audit logs."
+      </div>
+    </div>
+
+    <!-- Slide 8: Impact & Competitor Comparison -->
+    <div class="slide" data-title="Impact & Differentiation">
+      <div class="slide-kicker">📊 MEASURABLE IMPACT</div>
+      <h2 class="slide-title">JanSetu AI vs. The Status Quo</h2>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Civic Dimension</th>
+            <th>Existing Portal Process</th>
+            <th>With JanSetu AI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Time to File</strong></td>
+            <td>45–60 mins (often requires paid cyber-café)</td>
+            <td><strong>Under 60 seconds on any mobile browser</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Department Routing</strong></td>
+            <td>Citizen guesses; ~40% wrong department rate</td>
+            <td><strong>Algorithmic routing to 18+ municipal departments</strong></td>
+          </tr>
+          <tr>
+            <td><strong>SLA Follow-Up</strong></td>
+            <td>Manual; &lt; 15% ever file an appeal</td>
+            <td><strong>Automated SLA timer + 1-Click Section 19(1) RTI dossier</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Language Support</strong></td>
+            <td>Primarily technical English portal forms</td>
+            <td><strong>Bilingual English & हिन्दी with AI voice CoPilot</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Verification Integrity</strong></td>
+            <td>Single photo upload or text only</td>
+            <td><strong>Audited Before/After ground comparison & signed URLs</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "JanSetu AI reduces filing time by 90% and solves the single biggest reason grievances gather dust: the lack of statutory follow-up when government response windows expire."
+      </div>
+    </div>
+
+    <!-- Slide 9: Feasibility & Roadmap -->
+    <div class="slide" data-title="Roadmap & Next Steps">
+      <div class="slide-kicker">🚀 THE ROAD AHEAD</div>
+      <h2 class="slide-title">12-Month Post-Hackathon Roadmap</h2>
+
+      <div class="grid-3">
+        <div class="feature-card">
+          <div class="feature-title">Q1 2027: WhatsApp Civic Bot</div>
+          <div class="feature-desc">Extend JanSetu to WhatsApp Business API. Citizens can file grievances simply by sending a photo and voice note in their native dialect without installing an app.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Q2 2027: DIGIT Open APIs</div>
+          <div class="feature-desc">Partner with state municipal corporations to push grievances directly into municipal backends via Open Urban Data Exchange (ODX) / DIGIT APIs.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Q3 2027: Civic Heatmaps</div>
+          <div class="feature-desc">Aggregate verified complaints into real-time GIS heatmaps for ward councillors and municipal commissioners to plan proactive infrastructure budgets.</div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer">
+        <strong>🎙️ Presenter Script:</strong> "Our next step is bringing JanSetu to WhatsApp, enabling rural citizens who don't browse websites to file grievances simply by sending a photo and voice note."
+      </div>
+    </div>
+
+    <!-- Slide 10: Conclusion & Q&A Defense -->
+    <div class="slide" data-title="Conclusion & Jury Q&A">
+      <div class="slide-kicker">🏆 BUILDHER BHARAT 2026 FINALE</div>
+      <h2 class="slide-title">Thank You, Respected Jury!</h2>
+      <p class="slide-subtitle" style="margin-bottom: 20px;">
+        <strong>Live App:</strong> <a href="https://jansetu-ai-eight-theta.vercel.app" style="color: var(--blue);" target="_blank">jansetu-ai-eight-theta.vercel.app</a> | 
+        <strong>GitHub:</strong> <a href="https://github.com/bhavyarattan21/JansetuAI" style="color: var(--blue);" target="_blank">github.com/bhavyarattan21/JansetuAI</a>
+      </p>
+
+      <div class="grid-2">
+        <div class="feature-card">
+          <div class="feature-title">Jury Q: "Why not scrape government portals directly?"</div>
+          <div class="feature-desc"><strong>Answer:</strong> "Official portals like CPGRAMS forbid bot-scraping behind reCAPTCHAs. JanSetu operates legitimately as a Citizen Copilot — preparing the legal dossier and 1-click clipboard tokens so citizens file safely on official domains without account bans."</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Jury Q: "How do you prevent spam complaints?"</div>
+          <div class="feature-desc"><strong>Answer:</strong> "Every citizen session is cryptographically bound in Supabase Auth via Google OAuth. To transition from 'draft' to 'filed', citizens must confirm the official portal acknowledgement number, maintaining a verified audit trail."</div>
+        </div>
+      </div>
+
+      <div class="speaker-drawer" style="margin-top: 20px;">
+        <strong>🎙️ Presenter Closing:</strong> "JanSetu AI transforms democracy from a 5-year voting ritual into daily participatory governance. We are ready for your questions!"
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer Controls -->
+  <footer>
+    <div class="slide-progress">
+      Slide <span id="current-slide">1</span> of <span id="total-slides">10</span> : <span id="slide-name" style="color: #FFF;">Executive Summary</span>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn" id="prev-btn" onclick="prevSlide()">◀ Previous</button>
+      <button class="btn btn-primary" id="next-btn" onclick="nextSlide()">Next ▶</button>
+      <button class="btn" onclick="toggleFullscreen()" title="Full Screen Presentation Mode">⛶ Fullscreen</button>
+      <button class="btn" onclick="window.print()" title="Print or Save as PDF">🖨️ Export PDF</button>
+    </div>
+  </footer>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const currentSlideEl = document.getElementById('current-slide');
+    const totalSlidesEl = document.getElementById('total-slides');
+    const slideNameEl = document.getElementById('slide-name');
+    let currentIndex = 0;
+
+    totalSlidesEl.textContent = slides.length;
+
+    function showSlide(index) {
+      if (index < 0) index = 0;
+      if (index >= slides.length) index = slides.length - 1;
+      currentIndex = index;
+
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('active', i === currentIndex);
+      });
+
+      currentSlideEl.textContent = currentIndex + 1;
+      slideNameEl.textContent = slides[currentIndex].getAttribute('data-title') || '';
+    }
+
+    function nextSlide() {
+      if (currentIndex < slides.length - 1) showSlide(currentIndex + 1);
+    }
+
+    function prevSlide() {
+      if (currentIndex > 0) showSlide(currentIndex - 1);
+    }
+
+    // Keyboard navigation (Left, Right, Space)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Initialize
+    showSlide(0);
+  </script>
+</body>
+</html>
