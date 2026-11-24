@@ -29,7 +29,7 @@ export function Navbar({
               height: "38px",
               width: "auto",
               objectFit: "contain",
-              filter: "drop-shadow(0 2px 8px rgba(0, 180, 255, 0.35))"
+              filter: "drop-shadow(0 2px 8px rgba(15, 118, 110, 0.35))"
             }}
           />
           <div className="brandTitles">

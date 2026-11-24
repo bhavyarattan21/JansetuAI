@@ -79,7 +79,7 @@ export function LoadingScreen({ onFinish, minDuration = 850 }) {
             width: "110px",
             height: "110px",
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(0, 180, 255, 0.45) 0%, rgba(29, 78, 216, 0.2) 60%, transparent 80%)",
+            background: "radial-gradient(circle, rgba(20, 184, 166, 0.45) 0%, rgba(15, 118, 110, 0.2) 60%, transparent 80%)",
             animation: "auraGlow 2.4s ease-in-out infinite",
             filter: "blur(10px)",
             pointerEvents: "none"

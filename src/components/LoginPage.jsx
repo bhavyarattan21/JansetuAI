@@ -135,7 +135,7 @@ export function LoginPage({ onLogin, lang, t, notify }) {
             style={{
               height: "64px",
               width: "auto",
-              filter: "drop-shadow(0 8px 24px rgba(0, 180, 255, 0.35))"
+              filter: "drop-shadow(0 8px 24px rgba(15, 118, 110, 0.35))"
             }}
           />
         </div>

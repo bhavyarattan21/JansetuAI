@@ -133,11 +133,11 @@ button { cursor: pointer; }
 @keyframes logoFloat {
   0%, 100% {
     transform: translateY(0px) scale(1);
-    filter: drop-shadow(0 10px 24px rgba(0, 180, 255, 0.45));
+    filter: drop-shadow(0 10px 24px rgba(15, 118, 110, 0.45));
   }
   50% {
     transform: translateY(-8px) scale(1.04);
-    filter: drop-shadow(0 20px 38px rgba(0, 180, 255, 0.75));
+    filter: drop-shadow(0 20px 38px rgba(15, 118, 110, 0.65));
   }
 }
 

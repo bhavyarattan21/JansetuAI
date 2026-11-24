@@ -31,7 +31,7 @@ export function Footer({ setActive, toggleLanguage, lang, t }) {
               style={{
                 height: "32px",
                 width: "auto",
-                filter: "drop-shadow(0 2px 6px rgba(0, 180, 255, 0.3))"
+                filter: "drop-shadow(0 2px 6px rgba(15, 118, 110, 0.3))"
               }}
             />
             <strong style={{ fontSize: "18px", color: "var(--text-heading)", fontWeight: 800 }}>

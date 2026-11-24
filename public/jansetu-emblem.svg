@@ -1,19 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" width="100%" height="100%">
   <defs>
-    <!-- Outer Blue 3D Arch Gradient -->
+    <!-- Outer Deep Teal 3D Arch Gradient -->
     <linearGradient id="embBlueArchGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#1D4ED8" />
-      <stop offset="45%" stop-color="#2563EB" />
-      <stop offset="85%" stop-color="#0284C7" />
-      <stop offset="100%" stop-color="#00D2FF" />
+      <stop offset="0%" stop-color="#0B3D39" />
+      <stop offset="45%" stop-color="#0F766E" />
+      <stop offset="85%" stop-color="#14B8A6" />
+      <stop offset="100%" stop-color="#5EEAD4" />
     </linearGradient>
 
-    <!-- Top Arch (Cyan to Saffron) -->
+    <!-- Top Crown Arch (Teal) -->
     <linearGradient id="embCyanToSaffronGrad" x1="0%" y1="0%" x2="100%" y2="80%">
-      <stop offset="0%" stop-color="#00E5FF" />
-      <stop offset="45%" stop-color="#0284C7" />
-      <stop offset="60%" stop-color="#F59E0B" />
-      <stop offset="100%" stop-color="#D97706" />
+      <stop offset="0%" stop-color="#14B8A6" />
+      <stop offset="50%" stop-color="#0F766E" />
+      <stop offset="100%" stop-color="#0D9488" />
     </linearGradient>
 
     <!-- Inner Saffron Arch Accent -->
@@ -22,15 +21,15 @@
       <stop offset="100%" stop-color="#D97706" />
     </linearGradient>
 
-    <!-- Civic People Cyan Gradient -->
+    <!-- Civic People Pale Teal / Mint Gradient -->
     <linearGradient id="embCyanPeopleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38BDF8" />
-      <stop offset="100%" stop-color="#0284C7" />
+      <stop offset="0%" stop-color="#99F6E4" />
+      <stop offset="100%" stop-color="#5EEAD4" />
     </linearGradient>
 
     <!-- Subtle Drop Shadow -->
     <filter id="embSoftShadow" x="-15%" y="-15%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="3" stdDeviation="3.5" flood-color="rgba(0,0,0,0.25)" />
+      <feDropShadow dx="0" dy="3" stdDeviation="3.5" flood-color="rgba(15,118,110,0.25)" />
     </filter>
 
     <!-- Glow for Nodes -->
@@ -42,25 +41,25 @@
 
   <g transform="translate(18, 14)">
     <!-- Ambient Backdrop Aura -->
-    <ellipse cx="105" cy="95" rx="85" ry="65" fill="#00D2FF" opacity="0.12" />
+    <ellipse cx="105" cy="95" rx="85" ry="65" fill="#5EEAD4" opacity="0.14" />
 
-    <!-- 1. Outer Deep Blue Arch -->
+    <!-- 1. Outer Deep Teal Arch -->
     <path d="M 22 142 A 85 85 0 0 1 170 70" 
           fill="none" stroke="url(#embBlueArchGrad)" stroke-width="17" stroke-linecap="round" />
     <!-- Outer Arch Top Highlight -->
     <path d="M 30 140 A 78 78 0 0 1 164 76" 
-          fill="none" stroke="#93C5FD" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+          fill="none" stroke="#CCFBF1" stroke-width="3" stroke-linecap="round" opacity="0.6" />
 
     <!-- 2. Interlocking Saffron Arch (Right Leg) -->
     <path d="M 125 64 A 78 78 0 0 1 185 142" 
           fill="none" stroke="url(#embSaffronArchGrad)" stroke-width="17" stroke-linecap="round" filter="url(#embSoftShadow)" />
 
-    <!-- 3. Interlocking Cyan Arch (Main Crown) -->
+    <!-- 3. Interlocking Main Crown Arch -->
     <path d="M 64 142 A 78 78 0 0 1 190 120" 
           fill="none" stroke="url(#embCyanToSaffronGrad)" stroke-width="17" stroke-linecap="round" filter="url(#embSoftShadow)" />
-    <!-- Cyan Crown Highlight -->
+    <!-- Crown Highlight -->
     <path d="M 72 140 A 72 72 0 0 1 160 68" 
-          fill="none" stroke="#E0F2FE" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+          fill="none" stroke="#E6FFFA" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
 
     <!-- 4. Civic Community Figure (3 Citizen Heads + Bridge Smile) -->
     <!-- Center Head -->
@@ -75,7 +74,7 @@
           fill="none" stroke="url(#embCyanPeopleGrad)" stroke-width="11" stroke-linecap="round" />
 
     <!-- 5. Digital Network Lines -->
-    <g stroke="#38BDF8" stroke-width="2.2" opacity="0.85">
+    <g stroke="#5EEAD4" stroke-width="2.2" opacity="0.85">
       <line x1="92" y1="124" x2="128" y2="152" />
       <line x1="164" y1="124" x2="128" y2="152" />
       <line x1="92" y1="124" x2="62" y2="136" />
@@ -89,22 +88,22 @@
     </g>
 
     <!-- Network Nodes (Glowing Dots) -->
-    <circle cx="128" cy="166" r="5.5" fill="#00E5FF" filter="url(#embNodeGlow)" />
-    <circle cx="128" cy="152" r="4.5" fill="#38BDF8" />
-    <circle cx="92" cy="124" r="4.5" fill="#00D2FF" />
-    <circle cx="164" cy="124" r="4.5" fill="#00D2FF" />
-    <circle cx="128" cy="124" r="3.5" fill="#BAE6FD" />
-    <circle cx="62" cy="136" r="4" fill="#38BDF8" />
-    <circle cx="194" cy="136" r="4" fill="#38BDF8" />
-    <circle cx="20" cy="110" r="4.5" fill="#2563EB" />
-    <circle cx="28" cy="105" r="3.5" fill="#38BDF8" />
-    <circle cx="48" cy="82" r="3.5" fill="#2563EB" />
-    <circle cx="194" cy="102" r="3.5" fill="#38BDF8" />
-    <circle cx="208" cy="118" r="4" fill="#0284C7" />
+    <circle cx="128" cy="166" r="5.5" fill="#5EEAD4" filter="url(#embNodeGlow)" />
+    <circle cx="128" cy="152" r="4.5" fill="#2DD4BF" />
+    <circle cx="92" cy="124" r="4.5" fill="#14B8A6" />
+    <circle cx="164" cy="124" r="4.5" fill="#14B8A6" />
+    <circle cx="128" cy="124" r="3.5" fill="#99F6E4" />
+    <circle cx="62" cy="136" r="4" fill="#0D9488" />
+    <circle cx="194" cy="136" r="4" fill="#0D9488" />
+    <circle cx="20" cy="110" r="4.5" fill="#0F766E" />
+    <circle cx="28" cy="105" r="3.5" fill="#0D9488" />
+    <circle cx="48" cy="82" r="3.5" fill="#0F766E" />
+    <circle cx="194" cy="102" r="3.5" fill="#0F766E" />
+    <circle cx="208" cy="118" r="4" fill="#0B3D39" />
 
     <!-- Sparkle Stars -->
-    <path d="M 50 40 L 52 46 L 58 48 L 52 50 L 50 56 L 48 50 L 42 48 L 48 46 Z" fill="#00D2FF" />
-    <path d="M 185 35 L 187 42 L 194 44 L 187 46 L 185 53 L 183 46 L 176 44 L 183 42 Z" fill="#00D2FF" />
+    <path d="M 50 40 L 52 46 L 58 48 L 52 50 L 50 56 L 48 50 L 42 48 L 48 46 Z" fill="#14B8A6" />
+    <path d="M 185 35 L 187 42 L 194 44 L 187 46 L 185 53 L 183 46 L 176 44 L 183 42 Z" fill="#14B8A6" />
     <path d="M 64 85 L 65 89 L 69 90 L 65 91 L 64 95 L 63 91 L 59 90 L 63 89 Z" fill="#F59E0B" />
   </g>
 </svg>
