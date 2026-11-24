@@ -78,7 +78,7 @@ export function SchemeFinder({
   };
 
   return (
-    <main className="page" style={{ maxWidth: "1280px", margin: "0 auto", paddingBottom: "60px" }}>
+    <main className="page" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "60px" }}>
       {/* Header */}
       <div className="pageTitle">
         <span className="kicker">DETERMINISTIC CITIZEN RULE ENGINE</span>

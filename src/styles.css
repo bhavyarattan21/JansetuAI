@@ -79,14 +79,42 @@ body {
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 
-/* National Indian Tricolor Header Strip */
+/* National Indian Tricolor Header Strip - Hidden per user directive */
 .tricolorBar {
-  height: 4px;
-  width: 100%;
-  background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #138808 100%);
-  position: sticky;
-  top: 0;
-  z-index: 102;
+  display: none !important;
+}
+
+/* Category & Status Filter Pills (Honest dark theme & active glassmorphism) */
+.filterPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.filterPill:hover {
+  background: var(--panel-hover);
+  color: var(--text-heading);
+  border-color: var(--line-strong);
+}
+
+.filterPill.active {
+  background: var(--blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--blue) !important;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.3);
+  font-weight: 700;
 }
 
 .app {
@@ -1602,9 +1630,10 @@ nav button.active {
    PAGE & FORM LAYOUTS
    ========================================================= */
 .page {
-  max-width: 1050px;
+  max-width: 1400px;
+  width: 95%;
   margin: 0 auto;
-  padding: 50px 5vw 70px;
+  padding: 32px 20px 70px;
   min-height: 650px;
 }
 

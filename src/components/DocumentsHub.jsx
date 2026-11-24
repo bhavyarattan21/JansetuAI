@@ -88,7 +88,7 @@ export function DocumentsHub({
   };
 
   return (
-    <main className="page" style={{ maxWidth: "1060px", margin: "0 auto", paddingBottom: "60px" }}>
+    <main className="page" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "60px" }}>
       {/* Title */}
       <div className="pageTitle">
         <span className="kicker">STATUTORY CITIZEN DOCUMENTATION</span>

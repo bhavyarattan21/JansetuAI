@@ -191,7 +191,7 @@ export function CivicCoPilot({
   };
 
   return (
-    <main className="page helpPage" style={{ maxWidth: "1060px", margin: "0 auto", paddingBottom: "40px" }}>
+    <main className="page helpPage" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "40px" }}>
       {/* Title */}
       <div className="pageTitle">
         <span className="kicker">INDEPENDENT CIVIC ASSISTANT</span>

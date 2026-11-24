@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
   MapPin, Camera, Sparkles, ArrowRight, Check, Copy, ExternalLink,
-  Edit3, CheckCircle2, AlertCircle, FileText, Upload, RefreshCw, X, Image as ImageIcon
+  Edit3, CheckCircle2, AlertCircle, FileText, Upload, RefreshCw, X, Image as ImageIcon,
+  Zap, Info
 } from "lucide-react";
 import { generateComplaintDraft, analyzePhotoForComplaint } from "../services/ai";
 import { getPortalForCategory } from "../data/portals";
@@ -204,9 +205,9 @@ export function PrepareAndFile({
   };
 
   return (
-    <main className="page" style={{ maxWidth: "1280px", margin: "0 auto", paddingBottom: "60px" }}>
+    <main className="page" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "60px" }}>
       {/* 4-Step Stepper Bar */}
-      <div className="stepperContainer" style={{ maxWidth: "840px" }}>
+      <div className="stepperContainer" style={{ maxWidth: "980px" }}>
         <div className={`stepPill ${step === 1 ? "active" : (step > 1 ? "completed" : "")}`}>
           {step > 1 ? <Check size={14} /> : "1"}
           <span>{t("step1")}</span>
@@ -615,9 +616,37 @@ export function PrepareAndFile({
           </div>
 
           <div style={{ marginTop: "24px" }}>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: 700, marginBottom: "8px" }}>
-              {t("refInputLabel")}
-            </label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+              <label style={{ display: "block", fontSize: "13px", fontWeight: 700, margin: 0 }}>
+                {t("refInputLabel")}
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  const prefixes = ["CPGRAMS/2026/HAR", "MCG/GRV/2026", "MCD/CIV/2026", "CM-WINDOW/HR"];
+                  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                  const randomNum = Math.floor(100000 + Math.random() * 900000);
+                  setPortalRefInput(`${prefix}/${randomNum}`);
+                  notify?.(isHi ? "डेमो रजिस्ट्रेशन नंबर भर दिया गया!" : "Demo portal reference number filled!");
+                }}
+                style={{
+                  background: "var(--blue-subtle)",
+                  border: "1px solid var(--blue)",
+                  color: "var(--blue)",
+                  borderRadius: "6px",
+                  padding: "4px 10px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px"
+                }}
+              >
+                <Zap size={13} />
+                <span>{isHi ? "⚡ डेमो रजिस्ट्रेशन नंबर भरें" : "⚡ Fill Demo Registration Number"}</span>
+              </button>
+            </div>
             <input
               type="text"
               value={portalRefInput}
@@ -625,6 +654,27 @@ export function PrepareAndFile({
               placeholder={t("refInputPlaceholder")}
               style={{ width: "100%", padding: "14px 16px", borderRadius: "10px", border: "2px solid var(--blue)", background: "var(--panel-input)", color: "var(--text)", fontSize: "15px", fontWeight: 600 }}
             />
+            {/* Explanatory helper box for hackathon evaluators */}
+            <div style={{
+              marginTop: "10px",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              background: "var(--panel2)",
+              border: "1px dashed var(--line)",
+              fontSize: "12px",
+              color: "var(--muted)",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "8px",
+              lineHeight: 1.5
+            }}>
+              <Info size={16} color="var(--blue)" style={{ flexShrink: 0, marginTop: "2px" }} />
+              <span>
+                {isHi
+                  ? "पोर्टल रजिस्ट्रेशन नंबर क्या है? जब आप आधिकारिक सरकारी पोर्टल (CPGRAMS / नगर निगम) पर सबमिट करते हैं, तो वे एक पावती रसीद नंबर जारी करते हैं। JanSetu AI उसी नंबर से आपके समाधान की समय सीमा ट्रैक करता है और समय बीतने पर आरटीआई अपील तैयार करता है।"
+                  : "What is this registration number? When you submit your complaint on the official government portal (CPGRAMS / Municipal portal), they issue a confirmation receipt ID. JanSetu AI uses this exact reference number to track your resolution deadline and auto-generate RTI escalations if ignored."}
+              </span>
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "12px", marginTop: "24px", flexWrap: "wrap" }}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ShieldCheck, User, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
+import { triggerGoogleSignIn } from "../utils/googleAuth";
 
 export function LoginPage({ onLogin, lang, t, notify }) {
   const isHi = lang === "हिन्दी";
@@ -67,97 +68,12 @@ export function LoginPage({ onLogin, lang, t, notify }) {
     initGsi();
   }, [clientId, onLogin, notify, isHi]);
 
-  // Fallback Google dialog window
+  // Trigger Google Sign-In with official GSI or direct popup
   const launchGooglePopup = () => {
-    if (clientId && window.google?.accounts?.id) {
-      try {
-        window.google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            openSimulatedGooglePopup();
-          }
-        });
-        return;
-      } catch (e) {}
-    }
-    openSimulatedGooglePopup();
-  };
-
-  const openSimulatedGooglePopup = () => {
-    const width = 480;
-    const height = 580;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2.5;
-
-    const popup = window.open(
-      "about:blank",
-      "GoogleSignIn",
-      `width=${width},height=${height},left=${left},top=${top},status=0,toolbar=0,menubar=0`
-    );
-
-    if (!popup) {
-      // Direct login if popup blocked
-      onLogin({
-        name: "Citizen Resident",
-        email: "citizen@jansetu.local",
-        provider: "google",
-        loginTime: new Date().toLocaleString()
-      });
-      return;
-    }
-
-    const popupHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Sign in – Google Accounts</title>
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 32px; background: #fff; color: #202124; }
-          .logo { text-align: center; margin-bottom: 12px; }
-          h2 { font-weight: 400; font-size: 22px; text-align: center; margin: 0 0 6px; }
-          .sub { text-align: center; color: #5f6368; font-size: 14px; margin-bottom: 24px; }
-          .acc { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #dadce0; cursor: pointer; }
-          .acc:hover { background: #f8f9fa; border-radius: 6px; }
-          .avatar { width: 36px; height: 36px; border-radius: 50%; background: #1a73e8; color: #fff; display: grid; place-items: center; font-weight: 700; margin-right: 12px; }
-          .name { font-size: 14px; font-weight: 500; }
-          .email { font-size: 12px; color: #5f6368; }
-          .btn-custom { margin-top: 16px; width: 100%; padding: 10px; background: #1a73e8; color: #fff; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; }
-        </style>
-      </head>
-      <body>
-        <div class="logo">
-          <svg width="40" height="40" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        </div>
-        <h2>Choose an account</h2>
-        <div class="sub">to continue to <strong>JanSetuAI</strong></div>
-        <div class="acc" onclick="select('Bhavya Rattan', 'bhavyarattan21@gmail.com')">
-          <div class="avatar">B</div>
-          <div><div class="name">Bhavya Rattan</div><div class="email">bhavyarattan21@gmail.com</div></div>
-        </div>
-        <div class="acc" onclick="select('Citizen Resident', 'citizen@jansetu.demo')">
-          <div class="avatar" style="background:#0f9d58;">C</div>
-          <div><div class="name">Demo Citizen</div><div class="email">citizen@jansetu.demo</div></div>
-        </div>
-        <script>
-          function select(name, email) {
-            if (window.opener) {
-              window.opener.postMessage({ type: 'GOOGLE_AUTH_DONE', user: { name, email, provider: 'google' } }, '*');
-            }
-            window.close();
-          }
-        </script>
-      </body>
-      </html>
-    `;
-    popup.document.write(popupHtml);
-    popup.document.close();
-
-    const handleMessage = (e) => {
-      if (e.data?.type === 'GOOGLE_AUTH_DONE' && e.data.user) {
-        window.removeEventListener('message', handleMessage);
-        onLogin(e.data.user);
-      }
-    };
-    window.addEventListener('message', handleMessage);
+    triggerGoogleSignIn((user) => {
+      onLogin(user);
+      notify?.(isHi ? "Google से सफलतापूर्वक लॉग इन हुआ!" : "Signed in with Google!");
+    });
   };
 
   return (

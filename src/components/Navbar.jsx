@@ -1,7 +1,7 @@
 import React from "react";
 import {
   FileText, Home, HelpCircle, BookOpen, FileCheck2, AlertCircle,
-  Sun, Moon, Languages, User, LogIn, ExternalLink
+  Sun, Moon, Languages, User, LogIn, ExternalLink, Settings, ShieldCheck
 } from "lucide-react";
 
 export function Navbar({
@@ -13,14 +13,12 @@ export function Navbar({
   toggleTheme,
   user,
   onOpenAuth,
+  onOpenSettings,
   complaintsCount,
   t
 }) {
   return (
     <>
-      {/* Tricolor India Indicator */}
-      <div className="tricolorBar" />
-
       <header className="topbar">
         {/* Brand */}
         <div className="brand" onClick={() => setActive("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -103,7 +101,7 @@ export function Navbar({
           </button>
         </nav>
 
-        {/* Controls: Language, Theme, User */}
+        {/* Controls: Language, Theme, Settings, User */}
         <div className="topbarRight" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {/* Language Switcher */}
           <button
@@ -113,19 +111,47 @@ export function Navbar({
             style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", borderRadius: "8px", border: "1px solid var(--line)", background: "var(--panel)" }}
           >
             <Languages size={15} color="var(--blue)" />
-            <span style={{ fontSize: "12px", fontWeight: 700 }}>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-heading)" }}>
               {lang === "हिन्दी" ? "English" : "हिन्दी"}
             </span>
           </button>
 
-          {/* Theme Switcher */}
+          {/* Theme Switcher (Crisp contrast in dark & light mode) */}
           <button
             className="topbarIconBtn"
             onClick={toggleTheme}
             title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-            style={{ width: "36px", height: "36px", display: "grid", placeItems: "center", borderRadius: "8px", border: "1px solid var(--line)", background: "var(--panel)", color: "var(--text)" }}
+            style={{
+              width: "36px",
+              height: "36px",
+              display: "grid",
+              placeItems: "center",
+              borderRadius: "8px",
+              border: "1px solid var(--line)",
+              background: "var(--panel)",
+              color: "#FFFFFF"
+            }}
           >
-            {theme === "light" ? <Moon size={16} /> : <Sun size={16} color="var(--amber)" />}
+            {theme === "light" ? <Moon size={16} color="var(--blue)" /> : <Sun size={17} color="#FBBF24" />}
+          </button>
+
+          {/* Settings Button (Restored per user directive) */}
+          <button
+            className="topbarIconBtn"
+            onClick={onOpenSettings}
+            title={lang === "हिन्दी" ? "पोर्टल सेटिंग्स" : "Settings"}
+            style={{
+              width: "36px",
+              height: "36px",
+              display: "grid",
+              placeItems: "center",
+              borderRadius: "8px",
+              border: "1px solid var(--line)",
+              background: "var(--panel)",
+              color: "var(--text-heading)"
+            }}
+          >
+            <Settings size={16} color={theme === "dark" ? "#F8FAFC" : "var(--muted)"} />
           </button>
 
           {/* User Profile / Auth */}
@@ -133,14 +159,42 @@ export function Navbar({
             <button
               className="userProfilePill"
               onClick={onOpenAuth}
-              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "4px 10px", borderRadius: "20px", border: "1px solid var(--line)", background: "var(--panel)" }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "7px",
+                padding: "4px 10px",
+                borderRadius: "20px",
+                border: "1px solid var(--line)",
+                background: "var(--panel)",
+                color: "var(--text-heading)"
+              }}
             >
-              <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: "var(--blue)", color: "#fff", display: "grid", placeItems: "center", fontSize: "11px", fontWeight: 700 }}>
-                {user.name ? user.name[0].toUpperCase() : "C"}
+              <div style={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "50%",
+                background: user.provider === "google" ? "#1A73E8" : "var(--blue)",
+                color: "#fff",
+                display: "grid",
+                placeItems: "center",
+                fontSize: "11px",
+                fontWeight: 700
+              }}>
+                {user.picture ? (
+                  <img src={user.picture} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%" }} />
+                ) : user.name ? (
+                  user.name[0].toUpperCase()
+                ) : (
+                  "C"
+                )}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 600, maxWidth: "90px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, maxWidth: "90px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-heading)" }}>
                 {user.name?.split(" ")[0] || "Citizen"}
               </span>
+              {user.provider === "google" && (
+                <ShieldCheck size={13} color="#10B981" title="Google Verified" />
+              )}
             </button>
           ) : (
             <button

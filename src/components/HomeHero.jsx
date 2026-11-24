@@ -82,9 +82,9 @@ export function HomeHero({
   };
 
   return (
-    <main className="page" style={{ paddingTop: "24px" }}>
+    <main className="page" style={{ maxWidth: "1400px", width: "95%", margin: "0 auto", paddingTop: "24px" }}>
       {/* Hero Header */}
-      <div className="pageTitle" style={{ textAlign: "center", maxWidth: "900px", margin: "0 auto" }}>
+      <div className="pageTitle" style={{ textAlign: "center", maxWidth: "1100px", margin: "0 auto" }}>
         <span className="kicker" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
           <Sparkles size={14} color="var(--blue)" />
           {t("heroBadge")}
@@ -92,13 +92,13 @@ export function HomeHero({
         <h1 style={{ fontSize: "clamp(30px, 5vw, 48px)", lineHeight: 1.15, margin: "14px 0", letterSpacing: "-0.5px" }}>
           {t("heroHeadline")}
         </h1>
-        <p style={{ fontSize: "16px", color: "var(--muted)", maxWidth: "720px", margin: "0 auto", lineHeight: 1.6 }}>
+        <p style={{ fontSize: "16px", color: "var(--muted)", maxWidth: "860px", margin: "0 auto", lineHeight: 1.6 }}>
           {t("heroSubtitle")}
         </p>
       </div>
 
       {/* Front Door: Giant Search / Voice Bar (Fixed No-Overlap Layout) */}
-      <div className="heroCoPilotBox" style={{ maxWidth: "920px" }}>
+      <div className="heroCoPilotBox" style={{ maxWidth: "1100px" }}>
         <form
           className="heroInputWrap"
           onSubmit={(e) => {

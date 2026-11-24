@@ -62,7 +62,7 @@ export function MyComplaints({
   };
 
   return (
-    <main className="page" style={{ maxWidth: "1000px", margin: "0 auto", paddingBottom: "60px" }}>
+    <main className="page" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "60px" }}>
       {/* Title & Action Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div>
