@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import {
   MapPin, Camera, Sparkles, ArrowRight, Check, Copy, ExternalLink,
   Edit3, CheckCircle2, AlertCircle, FileText, Upload, RefreshCw, X, Image as ImageIcon,
-  Zap, Info, Clock, ShieldAlert, Calendar, Building2, LogIn
+  Zap, Info, Clock, ShieldAlert, Calendar, Building2, LogIn, Navigation
 } from "lucide-react";
 import { generateComplaintDraft, analyzePhotoForComplaint } from "../services/ai";
 import { getPortalForCategory } from "../data/portals";
-import { LocationPickerMap } from "./LocationPickerMap";
+import { LocationPickerMap, SOHNA_LANDMARKS, DEFAULT_CENTER, getNearestLandmark } from "./LocationPickerMap";
 import { triggerGoogleSignIn } from "../utils/googleAuth";
 
 export function PrepareAndFile({
@@ -24,9 +24,51 @@ export function PrepareAndFile({
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState(initialData?.category || "roads");
   const [location, setLocation] = useState(initialData?.location || "Sohna Bus Stand Chowk, Ward 4, Sohna, Haryana");
-  const [coords, setCoords] = useState(null);
+  const [coords, setCoords] = useState(DEFAULT_CENTER);
   const [description, setDescription] = useState(initialData?.extractedSummary || initialData?.description || "");
   const [urgency, setUrgency] = useState(initialData?.urgency || "high");
+  const [showInlineMap, setShowInlineMap] = useState(true);
+
+  // Quick GPS Location Detector
+  const handleDetectGpsLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    notify?.(isHi ? "जीपीएस स्थान खोजा जा रहा है..." : "Detecting GPS location...");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setCoords({ lat, lng });
+
+        // Instant 0ms update from nearest landmark
+        const nearest = getNearestLandmark(lat, lng);
+        const instantDisplay = Math.hypot(nearest.lat - lat, nearest.lng - lng) < 0.003
+          ? `Near ${nearest.label}, Sohna, Haryana (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`
+          : `Civic Point (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E), Near ${nearest.label}, Sohna, Haryana`;
+        setLocation(instantDisplay);
+        notify?.(isHi ? "जीपीएस स्थान 'स्थान / लैंडमार्क' में जोड़ा गया!" : "GPS location added to Location / Landmark!");
+
+        // Background refinement via Nominatim
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+          if (res.ok) {
+            const data = await res.json();
+            const display = data.display_name?.split(",").slice(0, 4).join(",") || instantDisplay;
+            setLocation(display);
+          }
+        } catch (e) {}
+      },
+      (err) => {
+        console.warn("GPS error:", err);
+        notify?.(isHi ? "डिफ़ॉल्ट सोहना लैंडमार्क चुना गया।" : "Selected Sohna Bus Stand Chowk.");
+        setLocation(SOHNA_LANDMARKS[0].address);
+        setCoords({ lat: SOHNA_LANDMARKS[0].lat, lng: SOHNA_LANDMARKS[0].lng });
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
 
   // Up to 3 photos with client compression
   const [photos, setPhotos] = useState(() => {
@@ -336,19 +378,91 @@ export function PrepareAndFile({
                 </select>
               </div>
 
-              {/* Location Text */}
+              {/* Location / Landmark Field with Direct Interactive Map Link */}
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "6px" }}>
-                  {t("fieldLocation")}
-                </label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Near Shiv Kund Chowk, Pole #14, Sohna, Haryana"
-                  required
-                  style={{ width: "100%", padding: "12px", borderRadius: "10px", border: "1px solid var(--line)", background: "var(--panel-input)", color: "var(--text)" }}
-                />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", flexWrap: "wrap", gap: "6px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, margin: 0 }}>
+                    {t("fieldLocation")}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowInlineMap(!showInlineMap)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--blue)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      cursor: "pointer",
+                      padding: 0
+                    }}
+                  >
+                    <MapPin size={13} />
+                    <span>{showInlineMap ? (isHi ? "नक्शा छुपाएं" : "Hide Map") : (isHi ? "🗺️ इंटरएक्टिव नक्शा खोलें" : "🗺️ Open Interactive Map")}</span>
+                  </button>
+                </div>
+
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. Near Shiv Kund Chowk, Pole #14, Sohna, Haryana"
+                    required
+                    style={{
+                      width: "100%",
+                      padding: "12px 14px",
+                      borderRadius: "10px",
+                      border: "1px solid var(--line)",
+                      background: "var(--panel-input)",
+                      color: "var(--text)",
+                      fontSize: "14px"
+                    }}
+                  />
+                </div>
+
+                {/* Coords & Map Pin Status Badge */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "6px", marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--blue)", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
+                    <MapPin size={12} />
+                    <span>
+                      {coords
+                        ? `${isHi ? "मानचित्र पिन सेट:" : "Map Pin:"} ${coords.lat.toFixed(4)}° N, ${coords.lng.toFixed(4)}° E`
+                        : "28.2468° N, 77.0617° E"}
+                    </span>
+                    <span style={{ color: "var(--muted)", fontWeight: 400 }}>
+                      ({isHi ? "नीचे नक्शे पर क्लिक करके बदलें" : "Click map below to set"})
+                    </span>
+                  </span>
+                  <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+                    Sohna Municipal Ward
+                  </span>
+                </div>
+
+                {/* Interactive Map Picker directly inside Location / Landmark */}
+                {showInlineMap && (
+                  <div style={{
+                    padding: "14px",
+                    borderRadius: "14px",
+                    background: "var(--panel2)",
+                    border: "1px solid var(--line)",
+                    marginBottom: "4px"
+                  }}>
+                    <LocationPickerMap
+                      initialLocation={location}
+                      initialCoords={coords}
+                      onLocationSelected={({ address: newAddr, lat, lng }) => {
+                        setLocation(newAddr);
+                        setCoords({ lat, lng });
+                        notify?.(isHi ? "स्थान / लैंडमार्क नक्शे से सेट किया गया!" : "Location / Landmark updated from map pin!");
+                      }}
+                      lang={lang}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -505,26 +619,95 @@ export function PrepareAndFile({
             </div>
           </form>
 
-          {/* Right Column: Interactive Map & Department Tips */}
+          {/* Right Column: Civic Location & Routing Intelligence */}
           <div style={{ display: "grid", gap: "20px" }}>
-            <div className="panel" style={{ padding: "24px", borderRadius: "20px" }}>
-              <LocationPickerMap
-                initialLocation={location}
-                onLocationSelected={({ address: newAddr, lat, lng }) => {
-                  setLocation(newAddr);
-                  setCoords({ lat, lng });
-                }}
-                lang={lang}
-              />
+            <div className="panel" style={{ padding: "26px", borderRadius: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "10px",
+                    background: "rgba(37, 99, 235, 0.12)",
+                    color: "var(--blue)",
+                    display: "grid",
+                    placeItems: "center"
+                  }}>
+                    <MapPin size={20} />
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: "15px", color: "var(--text-heading)", fontWeight: 700 }}>
+                      {isHi ? "स्थान व रूटिंग विश्लेषण" : "Location & Routing Intelligence"}
+                    </h4>
+                    <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+                      {isHi ? "नक्शे के साथ लाइव सिंक्ड" : "Live-synced from Interactive Map"}
+                    </span>
+                  </div>
+                </div>
+
+                <span style={{
+                  fontSize: "11px",
+                  padding: "4px 9px",
+                  borderRadius: "6px",
+                  background: "var(--blue-subtle)",
+                  color: "var(--blue)",
+                  fontWeight: 700,
+                  fontFamily: "monospace"
+                }}>
+                  {coords ? `${coords.lat.toFixed(4)}° N, ${coords.lng.toFixed(4)}° E` : "28.2468° N, 77.0617° E"}
+                </span>
+              </div>
+
+              {/* Active Pinned Location Display */}
+              <div style={{
+                padding: "14px 16px",
+                borderRadius: "14px",
+                background: "var(--panel2)",
+                border: "1px solid var(--line)",
+                marginBottom: "18px"
+              }}>
+                <div style={{ fontSize: "11px", color: "var(--muted)", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <CheckCircle2 size={13} color="#10B981" />
+                  <span>{isHi ? "फॉर्म में सक्रिय स्थान:" : "Active Form Location:"}</span>
+                </div>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-heading)", lineHeight: 1.4 }}>
+                  {location || "Sohna Bus Stand Chowk, Ward 4, Sohna, Haryana"}
+                </div>
+              </div>
+
+              {/* Department, Portal & SLA Routing Breakdown */}
+              <div style={{ display: "grid", gap: "12px", fontSize: "13px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "10px", borderBottom: "1px solid var(--line)" }}>
+                  <span style={{ color: "var(--muted)" }}>{isHi ? "जिम्मेदार विभाग:" : "Responsible Department:"}</span>
+                  <strong style={{ color: "var(--text-heading)", textAlign: "right" }}>{portalInfo.department}</strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "10px", borderBottom: "1px solid var(--line)" }}>
+                  <span style={{ color: "var(--muted)" }}>{isHi ? "नागरिक चार्टर समयसीमा:" : "Statutory SLA Window:"}</span>
+                  <span style={{ color: "var(--emerald)", fontWeight: 700 }}>{portalInfo.typicalResolutionDays} {isHi ? "कार्य दिवस" : "Working Days"}</span>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "10px", borderBottom: "1px solid var(--line)" }}>
+                  <span style={{ color: "var(--muted)" }}>{isHi ? "आधिकारिक पोर्टल:" : "Designated Portal:"}</span>
+                  <span style={{ color: "var(--blue)", fontWeight: 600 }}>{portalInfo.portal.name}</span>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ color: "var(--muted)" }}>{isHi ? "अपीलीय नोडल अधिकारी:" : "Escalation Authority:"}</span>
+                  <span style={{ color: "var(--text-heading)", fontWeight: 600 }}>SDM Sohna / CM Window</span>
+                </div>
+              </div>
             </div>
 
             <div className="panel" style={{ padding: "24px", borderRadius: "20px", background: "var(--panel2)" }}>
               <h4 style={{ margin: "0 0 8px", fontSize: "14px", color: "var(--text-heading)", display: "flex", alignItems: "center", gap: "6px" }}>
                 <CheckCircle2 size={16} color="var(--blue)" />
-                <span>Why JanSetu's AI Draft Matters</span>
+                <span>{isHi ? "नक्शे के सटीक निर्देशांक क्यों जरूरी हैं?" : "Why Exact Map Coordinates Matter"}</span>
               </h4>
               <p style={{ margin: 0, fontSize: "13px", color: "var(--muted)", lineHeight: 1.6 }}>
-                Government portal clerks immediately discard informal complaints. JanSetu AI formats your issue with legal department hierarchy, exact landmark coordinates, and safety-critical urgency tags so it is prioritized under the official citizen charter SLA.
+                {isHi
+                  ? "सरकारी पोर्टल पर सामान्य शिकायतें (जैसे 'सड़क पर गड्ढा है') अस्पष्ट बताकर खारिज कर दी जाती हैं। जनसेतु AI आपकी शिकायत में सटीक जीपीएस पिन और निकटतम लैंडमार्क जोड़ता है, जिससे पीडब्ल्यूडी/नगरपालिका इंजीनियर सीधे वर्क-ऑर्डर जारी कर सकें।"
+                  : "Informal complaints like 'pothole on my road' often get dismissed by clerks as non-actionable. JanSetu AI embeds your exact map coordinates and landmark reference into the formal statutory draft so municipal field teams can immediately dispatch work orders without site ambiguity."}
               </p>
             </div>
           </div>
