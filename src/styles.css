@@ -3888,22 +3888,198 @@ body.dark-theme .overdueAlertBanner {
   color: var(--blue);
 }
 
+/* Desktop Navigation bar */
+.desktopNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* =========================================================
+   COMPREHENSIVE RESPONSIVE STYLING (< 820px & < 600px)
+   ========================================================= */
 @media (max-width: 820px) {
-  .failureGrid {
-    grid-template-columns: 1fr;
+  /* Hide desktop header nav on mobile (Bottom Bar takes over) */
+  .desktopNav {
+    display: none !important;
   }
-  .stepperContainer {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+
+  /* Show mobile bottom navigation bar with crisp elevated shadow */
   .mobileBottomBar {
-    display: flex;
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 62px !important;
+    background: var(--topbar-bg) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid var(--line) !important;
+    z-index: 9999 !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    padding: 0 4px calc(env(safe-area-inset-bottom, 0px)) !important;
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12) !important;
   }
+
+  .mobileNavItem {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--muted) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    min-height: 48px !important;
+    border-radius: 8px !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .mobileNavItem.active {
+    color: var(--blue) !important;
+  }
+
+  /* Ensure body content is never hidden behind the fixed bottom bar */
   .app {
-    padding-bottom: 64px;
+    padding-bottom: 90px !important;
   }
-  .beforeAfterContainer {
-    grid-template-columns: 1fr;
+
+  .page {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px 14px 90px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Topbar Mobile Fit */
+  .topbar {
+    height: 60px !important;
+    padding: 0 14px !important;
+    gap: 8px !important;
+  }
+
+  .brand {
+    gap: 8px !important;
+  }
+
+  .brandTitles .brandMeta {
+    display: none !important;
+  }
+
+  .brandName span {
+    font-size: 16px !important;
+  }
+
+  /* Compact Stepper for Mobile (1 Active text, 3 compact circular badges) */
+  .stepperContainer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin: 0 auto 20px !important;
+    padding: 4px !important;
+    border-radius: 999px !important;
+    box-sizing: border-box !important;
+  }
+
+  .stepPill {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    gap: 4px !important;
+    border-radius: 999px !important;
+  }
+
+  .stepPill:not(.active) span {
+    display: none !important;
+  }
+
+  /* Form Grids: Single column stack on mobile without horizontal scroll */
+  .prepareGrid,
+  .failureGrid,
+  .beforeAfterContainer,
+  .grievanceStatsGrid,
+  .schemeGrid,
+  .schemeGrid.big,
+  .docsGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .panel {
+    padding: 20px 16px !important;
+    border-radius: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Search & Hero Input on Mobile */
+  .heroInputWrap {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px 14px !important;
+    gap: 10px !important;
+  }
+
+  .heroInputActions {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  .heroActionSubmitBtn {
+    flex: 1 !important;
+  }
+
+  .heroInputText {
+    width: 100% !important;
+    font-size: 14px !important;
+  }
+
+  /* Horizontal Scrolling Ribbon for Chips on Mobile */
+  .categoryChipsRow {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+    gap: 6px !important;
+  }
+
+  .categoryChipsRow::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .chipBtn {
+    flex-shrink: 0 !important;
+  }
+
+  /* Footer on mobile */
+  .footer {
+    padding: 30px 16px 100px !important;
+  }
+
+  .footerGrid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroHeadline, .pageTitle h1 {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+  }
+
+  .topbarRight .topbarIconBtn span {
+    display: none !important;
+  }
+
+  .brandName span:first-child {
+    font-size: 15px !important;
   }
 }
 

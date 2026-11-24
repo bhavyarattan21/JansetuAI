@@ -47,8 +47,8 @@ export function Navbar({
           </div>
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="desktopNav" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        {/* Desktop Navigation (Hidden on mobile via CSS) */}
+        <nav className="desktopNav">
           <button
             className={`navBtn ${active === "home" ? "active" : ""}`}
             onClick={() => setActive("home")}

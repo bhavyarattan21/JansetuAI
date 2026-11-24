@@ -372,9 +372,9 @@ export function PrepareAndFile({
         </div>
       </div>
 
-      {/* STEP 1: Two-Column Form Layout on Desktop */}
+      {/* STEP 1: Two-Column Form Layout on Desktop, 1-Column on Mobile */}
       {step === 1 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "28px", alignItems: "start" }}>
+        <div className="prepareGrid">
           {/* Left Column: Form Input */}
           <form onSubmit={handleGenerateDraft} className="panel" style={{ padding: "32px", borderRadius: "20px" }}>
             <div style={{ marginBottom: "20px" }}>

@@ -68,6 +68,7 @@ export function LocationPickerMap({
   const [isLocating, setIsLocating] = useState(false);
   const [mapEngine, setMapEngine] = useState("loading"); // 'google' | 'leaflet' | 'loading'
   const [justSelected, setJustSelected] = useState(false);
+  const [showPermissionGuide, setShowPermissionGuide] = useState(false);
 
   // Search Bar State
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,6 +76,20 @@ export function LocationPickerMap({
   const [searchResults, setSearchResults] = useState([]);
 
   const googleKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+  // Track browser geolocation permission state
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator.permissions?.query) {
+      navigator.permissions.query({ name: "geolocation" }).then((status) => {
+        if (status.state === "denied") {
+          setShowPermissionGuide(true);
+        }
+        status.onchange = () => {
+          setShowPermissionGuide(status.state === "denied");
+        };
+      }).catch(() => {});
+    }
+  }, []);
 
   // Sync external coords changes
   useEffect(() => {
@@ -408,22 +423,28 @@ export function LocationPickerMap({
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        setShowPermissionGuide(false);
         applyLocationResult(pos.coords.latitude, pos.coords.longitude);
       },
       (err) => {
         console.warn("High-accuracy GPS failed, trying low accuracy / IP:", err);
+        if (err.code === 1) {
+          setShowPermissionGuide(true);
+        }
         navigator.geolocation.getCurrentPosition(
           (pos) => {
+            setShowPermissionGuide(false);
             applyLocationResult(pos.coords.latitude, pos.coords.longitude);
           },
           () => {
             // Permission denied or unavailable -> Seamless IP Location!
+            setShowPermissionGuide(true);
             fallbackToIpLocation();
           },
-          { enableHighAccuracy: false, timeout: 5000 }
+          { enableHighAccuracy: false, timeout: 8000 }
         );
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
 
@@ -510,6 +531,30 @@ export function LocationPickerMap({
           <span>{isLocating ? (isHi ? "जीपीएस खोज रहा है..." : "Detecting GPS...") : (isHi ? "🎯 मेरा जीपीएस स्थान लें" : "🎯 Use My Current Location")}</span>
         </button>
       </div>
+
+      {/* Chrome Desktop Location Permission Guidance Banner */}
+      {showPermissionGuide && (
+        <div style={{
+          padding: "10px 14px",
+          borderRadius: "10px",
+          background: "rgba(245, 158, 11, 0.08)",
+          border: "1px solid rgba(245, 158, 11, 0.3)",
+          fontSize: "12px",
+          color: "var(--text)",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "8px",
+          lineHeight: 1.4
+        }}>
+          <AlertCircle size={16} color="var(--saffron)" style={{ flexShrink: 0, marginTop: "2px" }} />
+          <div>
+            <strong>{isHi ? "Chrome में सटीक स्थान की अनुमति कैसे दें:" : "Allowing Exact Location in Chrome:"}</strong>{" "}
+            {isHi
+              ? "सटीक सड़क स्थान प्राप्त करने के लिए: Chrome एड्रेस बार में बाईं ओर 🔒 लॉक या ट्यून आइकन पर क्लिक करें > 'Location' को 'Allow' करें > फिर '🎯 मेरा जीपीएस स्थान लें' पर क्लिक करें। या नीचे अपना क्षेत्र खोजें।"
+              : "To get street-level precision: Click the 🔒 lock/tune icon on the left of your Chrome URL bar > Set 'Location' to Allow > Then click '🎯 Use My Current Location'. Or search your exact colony/sector below."}
+          </div>
+        </div>
+      )}
 
       {/* Interactive Location Search Bar */}
       <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: "6px", position: "relative" }}>
