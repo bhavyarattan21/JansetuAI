@@ -169,8 +169,19 @@ export function HomeHero({
           </div>
         </form>
 
-        {/* Quick Category Chips + One-Click Demo Scenario */}
-        <div className="categoryChipsRow">
+        {/* Quick Category Chips + One-Click Demo Scenario (Guaranteed wrap on all screen widths) */}
+        <div
+          className="categoryChipsRow"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "14px",
+            width: "100%",
+            overflow: "visible"
+          }}
+        >
           <span>{t("quickChipsLabel")}</span>
           <button
             type="button"

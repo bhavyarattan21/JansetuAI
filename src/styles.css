@@ -3921,8 +3921,25 @@ html, body {
   width: 100% !important;
 }
 
+/* Hero category chips: wrap cleanly so all buttons are always 100% visible */
+.categoryChipsRow {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 14px !important;
+  font-size: 13px !important;
+  color: var(--muted) !important;
+  overflow: visible !important;
+  width: 100% !important;
+}
+.categoryChipsRow .chipBtn,
+.categoryChipsRow .demoScenarioHeroBtn {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+}
+
 /* Horizontal Touch Scrollbars for Mobile Ribbons */
-.categoryChipsRow,
 .filterPillsRow,
 .schemeCategoryPills,
 .schemeFilters {
@@ -3934,14 +3951,11 @@ html, body {
   padding-bottom: 6px !important;
   gap: 8px !important;
 }
-.categoryChipsRow::-webkit-scrollbar,
 .filterPillsRow::-webkit-scrollbar,
 .schemeCategoryPills::-webkit-scrollbar,
 .schemeFilters::-webkit-scrollbar {
   display: none !important;
 }
-.categoryChipsRow button,
-.categoryChipsRow .chipBtn,
 .filterPillsRow .filterPill,
 .schemeCategoryPills button {
   flex-shrink: 0 !important;
