@@ -209,9 +209,13 @@ function App() {
     } catch (e) {}
   }, [chat]);
 
-  // Translation helper
+  // Translation helper (supports both "हिन्दी" and "Hindi" keys with fallback)
   const t = (key) => {
-    return translations[lang]?.[key] || translations["English"]?.[key] || key;
+    const isHindi = lang === "हिन्दी" || lang === "Hindi" || lang === "hi";
+    const dict = isHindi
+      ? (translations["हिन्दी"] || translations["Hindi"])
+      : (translations["English"] || translations["en"]);
+    return dict?.[key] || translations["English"]?.[key] || key;
   };
 
   // Route from Home Hero Co-Pilot into the appropriate flow

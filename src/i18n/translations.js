@@ -467,3 +467,7 @@ export const translations = {
     rented: "किराए का मकान"
   }
 };
+
+// Guarantee bidirectional mapping for Hindi key
+translations["हिन्दी"] = translations.Hindi;
+

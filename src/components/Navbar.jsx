@@ -108,12 +108,24 @@ export function Navbar({
           <button
             className="topbarIconBtn langSwitcherBtn"
             onClick={toggleLanguage}
-            title={lang === "हिन्दी" ? "Switch to English" : "हिंदी में बदलें"}
-            style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", borderRadius: "8px", border: "1px solid var(--line)", background: "var(--panel)" }}
+            title={lang === "हिन्दी" ? "Switch to English / अंग्रेज़ी में बदलें" : "Switch to Hindi / हिन्दी में बदलें"}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 12px",
+              borderRadius: "8px",
+              border: "1px solid var(--line)",
+              background: "var(--panel)",
+              cursor: "pointer"
+            }}
           >
             <Languages size={15} color="var(--blue)" />
             <span className="langBtnLabel" style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-heading)" }}>
-              {lang === "हिन्दी" ? "English" : "हिन्दी"}
+              {lang === "हिन्दी" ? "हिन्दी" : "English"}
+            </span>
+            <span style={{ fontSize: "10px", color: "var(--muted)", fontWeight: 600 }}>
+              {lang === "हिन्दी" ? "(EN)" : "(HI)"}
             </span>
           </button>
 
