@@ -2,17 +2,19 @@ import React, { useState, useEffect } from "react";
 import {
   MapPin, Camera, Sparkles, ArrowRight, Check, Copy, ExternalLink,
   Edit3, CheckCircle2, AlertCircle, FileText, Upload, RefreshCw, X, Image as ImageIcon,
-  Zap, Info, Clock, ShieldAlert, Calendar, Building2
+  Zap, Info, Clock, ShieldAlert, Calendar, Building2, LogIn
 } from "lucide-react";
 import { generateComplaintDraft, analyzePhotoForComplaint } from "../services/ai";
 import { getPortalForCategory } from "../data/portals";
 import { LocationPickerMap } from "./LocationPickerMap";
+import { triggerGoogleSignIn } from "../utils/googleAuth";
 
 export function PrepareAndFile({
   initialData,
   onComplaintFiled,
   onViewTracker,
   user,
+  onLogin,
   lang,
   t,
   notify
@@ -203,6 +205,80 @@ export function PrepareAndFile({
     setStep(4);
     notify(isHi ? "शिकायत सफलतापूर्वक ट्रैकर में जोड़ी गई!" : "Complaint added to your tracking record!");
   };
+
+  // If citizen has not logged in with Google, require login portal before filing
+  if (!user) {
+    return (
+      <main className="page" style={{ maxWidth: "560px", margin: "40px auto 80px", textAlign: "center" }}>
+        <div className="panel" style={{ padding: "40px 32px", borderRadius: "24px", boxShadow: "var(--shadow-lg)" }}>
+          <div style={{
+            width: "60px",
+            height: "60px",
+            borderRadius: "50%",
+            background: "rgba(37, 99, 235, 0.12)",
+            color: "var(--blue)",
+            display: "grid",
+            placeItems: "center",
+            margin: "0 auto 18px"
+          }}>
+            <LogIn size={28} />
+          </div>
+
+          <span className="kicker" style={{ color: "var(--blue)" }}>
+            {isHi ? "लॉगिन आवश्यक" : "GOOGLE SIGN-IN REQUIRED TO FILE"}
+          </span>
+          <h2 style={{ fontSize: "22px", color: "var(--text-heading)", margin: "8px 0" }}>
+            {isHi ? "शिकायत दर्ज करने से पहले लॉगिन करें" : "Sign in to Prepare & File Your Grievance"}
+          </h2>
+          <p style={{ color: "var(--muted)", fontSize: "14px", lineHeight: 1.5, margin: "0 auto 24px", maxWidth: "440px" }}>
+            {isHi
+              ? "अपनी शिकायत का AI कानूनी मसौदा सुरक्षित सहेजने, आधिकारिक पोर्टल पावती संदर्भ नंबर ट्रैक करने और सरकारी देरी पर आरटीआई अपील तैयार करने हेतु कृपया अपनी Google आईडी से लॉगिन करें।"
+              : "Please sign in with your Google email account before filing. This securely saves your complaint draft, tracks statutory SLA timelines, and prepares automated RTI appeals if authorities ignore it."}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              triggerGoogleSignIn((u) => {
+                onLogin?.(u);
+                notify?.(isHi ? `नमस्ते, ${u.name}! Google से लॉगिन हुआ।` : `Welcome, ${u.name}! Ready to file.`);
+              });
+            }}
+            style={{
+              width: "100%",
+              padding: "13px 20px",
+              borderRadius: "12px",
+              border: "1px solid var(--line-strong)",
+              background: "#FFFFFF",
+              color: "#1F2937",
+              fontWeight: 700,
+              fontSize: "15px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "12px",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+              marginBottom: "16px"
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            <span>{isHi ? "Google खाते से लॉगिन करें" : "Sign in with Google to Continue"}</span>
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "12px", color: "var(--muted)" }}>
+            <CheckCircle2 size={14} color="#10B981" />
+            <span>{isHi ? "Google Cloud Console OAuth 2.0 सुरक्षित" : "Secured by Google Cloud Console OAuth 2.0"}</span>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="page" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "60px" }}>

@@ -245,46 +245,7 @@ function App() {
     return <LoadingScreen onFinish={() => setLoading(false)} minDuration={850} />;
   }
 
-  // 2. Authentication Gate: If not logged in, show LoginPage
-  if (!user) {
-    return (
-      <div className="app">
-        {toast && (
-          <div style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            background: "var(--text-heading)",
-            color: "var(--bg)",
-            padding: "12px 20px",
-            borderRadius: "10px",
-            fontSize: "13px",
-            fontWeight: 600,
-            boxShadow: "var(--shadow-lg)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
-          }}>
-            <CheckCircle2 size={16} color="var(--emerald)" />
-            <span>{toast}</span>
-          </div>
-        )}
-        <LoginPage
-          onLogin={(u) => {
-            setUser(u);
-            localStorage.setItem("jansetu_current_user", JSON.stringify(u));
-            showToast(lang === "हिन्दी" ? `नमस्ते, ${u.name}!` : `Welcome, ${u.name}!`);
-          }}
-          lang={lang}
-          t={t}
-          notify={showToast}
-        />
-      </div>
-    );
-  }
-
-  // 3. Main Portal View
+  // 2. Main Civic Portal View (Unauthenticated visitors can explore Home, Schemes, Documents, and CoPilot; Google Login required before filing)
   return (
     <div className="app">
       {/* Toast Notification Banner */}
@@ -389,6 +350,11 @@ function App() {
           onComplaintFiled={handleComplaintFiled}
           onViewTracker={() => setActive("tracker")}
           user={user}
+          onLogin={(u) => {
+            setUser(u);
+            localStorage.setItem("jansetu_current_user", JSON.stringify(u));
+            showToast(lang === "हिन्दी" ? `नमस्ते, ${u.name}!` : `Welcome, ${u.name}!`);
+          }}
           lang={lang}
           t={t}
           notify={showToast}
