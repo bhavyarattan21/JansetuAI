@@ -23,7 +23,7 @@ export function ResolutionModal({
     onClose();
   };
 
-  const beforePhoto = grievance.evidencePhotos?.[0] || null;
+  const beforePhoto = grievance.photos?.find(p => p.kind === "before")?.url || grievance.evidencePhotos?.[0] || grievance.photos?.[0]?.url || null;
 
   return (
     <div className="modalOverlay" onClick={onClose}>

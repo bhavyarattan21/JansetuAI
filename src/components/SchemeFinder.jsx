@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search, CheckCircle2, AlertCircle, ExternalLink, Filter,
   Sparkles, ArrowRight, UserCheck, Check, FileCheck2, ChevronDown, ChevronUp,
@@ -6,6 +6,7 @@ import {
   Lightbulb, Flame, Briefcase, Sun, Layers, Droplets
 } from "lucide-react";
 import { schemesDatabase, evaluateUserSchemes } from "../data/schemes";
+import { getUserProfile, saveSchemeProfile } from "../lib/profile";
 
 // Category colors map
 const CATEGORY_COLORS = {
@@ -39,6 +40,7 @@ const CATEGORY_COLORS = {
 export function SchemeFinder({
   onNavigateToDocs,
   onAskAI,
+  user,
   lang,
   t,
   notify
@@ -60,6 +62,26 @@ export function SchemeFinder({
     hasDisability: false,
     familyHasWoman: true
   });
+
+  // Prefill wizard from Supabase profiles.scheme_profile on mount
+  useEffect(() => {
+    let mounted = true;
+    if (user?.id) {
+      getUserProfile(user.id).then(data => {
+        if (mounted && data?.scheme_profile) {
+          setProfile(prev => ({ ...prev, ...data.scheme_profile }));
+        }
+      });
+    }
+    return () => { mounted = false; };
+  }, [user?.id]);
+
+  // Auto-sync answers to profiles.scheme_profile in Supabase
+  useEffect(() => {
+    if (user?.id) {
+      saveSchemeProfile(user.id, profile).catch(e => console.warn("Auto-save scheme profile:", e));
+    }
+  }, [profile, user?.id]);
 
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [expandedSchemeId, setExpandedSchemeId] = useState(null);

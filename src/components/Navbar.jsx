@@ -1,7 +1,7 @@
 import React from "react";
 import {
   FileText, Home, HelpCircle, BookOpen, FileCheck2, AlertCircle,
-  Sun, Moon, Languages, User, LogIn, ExternalLink, Settings, ShieldCheck
+  Sun, Moon, Languages, User, LogIn, ExternalLink, Settings, ShieldCheck, LogOut
 } from "lucide-react";
 
 export function Navbar({
@@ -13,6 +13,7 @@ export function Navbar({
   toggleTheme,
   user,
   onOpenAuth,
+  onLogout,
   onOpenSettings,
   complaintsCount,
   t
@@ -154,58 +155,84 @@ export function Navbar({
             <Settings size={16} color={theme === "dark" ? "#F8FAFC" : "var(--muted)"} />
           </button>
 
-          {/* User Profile / Auth */}
-          {user ? (
-            <button
-              className="userProfilePill"
-              onClick={onOpenAuth}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "7px",
-                padding: "4px 10px",
-                borderRadius: "20px",
-                border: "1px solid var(--line)",
-                background: "var(--panel)",
-                color: "var(--text-heading)"
-              }}
-            >
-              <div style={{
-                width: "24px",
-                height: "24px",
-                borderRadius: "50%",
-                background: user.provider === "google" ? "#1A73E8" : "var(--blue)",
-                color: "#fff",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "11px",
-                fontWeight: 700
-              }}>
-                {user.picture ? (
-                  <img src={user.picture} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%" }} />
-                ) : user.name ? (
-                  user.name[0].toUpperCase()
-                ) : (
-                  "C"
-                )}
+          {/* User Profile / Auth State: Name or "Guest" + Sign out */}
+          {(() => {
+            const isAnonymous = !user || user.is_anonymous || (!user.email && user.provider !== "google");
+            const displayName = isAnonymous
+              ? (lang === "हिन्दी" ? "अतिथि" : "Guest")
+              : (user.user_metadata?.full_name?.split(" ")[0] || user.name?.split(" ")[0] || user.email?.split("@")[0] || "Citizen");
+            const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || user?.picture;
+
+            return (
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <button
+                  className="userProfilePill"
+                  onClick={onOpenAuth}
+                  title={isAnonymous ? (lang === "हिन्दी" ? "अतिथि प्रोफ़ाइल - Google से लिंक करें" : "Guest Profile - Click to Sign in with Google") : "Citizen Profile"}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    border: isAnonymous ? "1px dashed var(--line)" : "1px solid var(--line)",
+                    background: isAnonymous ? "var(--panel2)" : "var(--panel)",
+                    color: "var(--text-heading)",
+                    cursor: "pointer"
+                  }}
+                >
+                  <div style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    background: !isAnonymous ? "#1A73E8" : "var(--line-strong, #64748B)",
+                    color: "#fff",
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    overflow: "hidden"
+                  }}>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <span>{isAnonymous ? "G" : (displayName[0]?.toUpperCase() || "C")}</span>
+                    )}
+                  </div>
+                  <span className="userProfileName" style={{ fontSize: "12px", fontWeight: 600, maxWidth: "90px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-heading)" }}>
+                    {displayName}
+                  </span>
+                  {!isAnonymous ? (
+                    <ShieldCheck size={13} color="#10B981" title="Google Verified" />
+                  ) : (
+                    <span style={{ fontSize: "9px", padding: "1px 5px", borderRadius: "4px", background: "rgba(234, 179, 8, 0.15)", color: "#D97706", fontWeight: 700 }}>
+                      GUEST
+                    </span>
+                  )}
+                </button>
+
+                {/* Direct Sign Out Button */}
+                <button
+                  className="topbarIconBtn"
+                  onClick={onLogout}
+                  title={lang === "हिन्दी" ? "साइन आउट करें" : "Sign Out"}
+                  style={{
+                    width: "34px",
+                    height: "34px",
+                    display: "grid",
+                    placeItems: "center",
+                    borderRadius: "8px",
+                    border: "1px solid var(--line)",
+                    background: "var(--panel)",
+                    color: "var(--rose, #EF4444)",
+                    cursor: "pointer"
+                  }}
+                >
+                  <LogOut size={15} />
+                </button>
               </div>
-              <span className="userProfileName" style={{ fontSize: "12px", fontWeight: 600, maxWidth: "90px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-heading)" }}>
-                {user.name?.split(" ")[0] || "Citizen"}
-              </span>
-              {user.provider === "google" && (
-                <ShieldCheck size={13} color="#10B981" title="Google Verified" />
-              )}
-            </button>
-          ) : (
-            <button
-              className="loginCtaBtn"
-              onClick={onOpenAuth}
-              style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "8px", background: "var(--blue)", color: "#fff", border: "none", fontSize: "12px", fontWeight: 600 }}
-            >
-              <LogIn size={14} />
-              <span className="loginCtaLabel">Sign In</span>
-            </button>
-          )}
+            );
+          })()}
         </div>
       </header>
     </>

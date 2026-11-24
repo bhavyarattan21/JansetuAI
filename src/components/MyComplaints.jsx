@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import {
   Clock, AlertTriangle, CheckCircle2, ShieldAlert, Archive,
-  ExternalLink, FileText, ChevronRight, Copy, Check, Eye, Trash2
+  ExternalLink, FileText, ChevronRight, Copy, Check, Eye, Trash2,
+  AlertCircle, RotateCcw
 } from "lucide-react";
 import { EscalationModal } from "./EscalationModal";
 import { ResolutionModal } from "./ResolutionModal";
@@ -9,6 +10,9 @@ import { DeleteConfirmModal } from "./DeleteConfirmModal";
 
 export function MyComplaints({
   complaints,
+  loading = false,
+  error = null,
+  onRetry,
   onArchiveComplaint,
   onDeleteWithUndo,
   onConfirmResolved,
@@ -94,7 +98,7 @@ export function MyComplaints({
           {t("filterAll")} ({complaints.length})
         </button>
         <button
-          className={`filterPill ${filter === "active" ? "active" : ""}`}
+          className={`filterPill ${filter === "filed" ? "active" : ""}`}
           onClick={() => setFilter("filed")}
         >
           {t("filterActive")} ({complaints.filter(c => c.status === "filed").length})
@@ -103,7 +107,7 @@ export function MyComplaints({
           className={`filterPill ${filter === "overdue" ? "active" : ""}`}
           onClick={() => setFilter("overdue")}
         >
-          {t("filterOverdue")} ({complaints.filter(c => c.status === "follow_up_due").length})
+          {t("filterOverdue")} ({complaints.filter(c => c.isOverdue || c.status === "follow_up_due").length})
         </button>
         <button
           className={`filterPill ${filter === "escalated" ? "active" : ""}`}
@@ -119,8 +123,33 @@ export function MyComplaints({
         </button>
       </div>
 
+      {/* Loading Skeletons */}
+      {loading && (
+        <div style={{ display: "grid", gap: "16px" }}>
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="panel" style={{ padding: "24px", borderRadius: "16px", animation: "pulse 1.5s infinite" }}>
+              <div style={{ height: "20px", width: "40%", background: "var(--panel2)", borderRadius: "6px", marginBottom: "12px" }} />
+              <div style={{ height: "14px", width: "70%", background: "var(--panel2)", borderRadius: "4px", marginBottom: "8px" }} />
+              <div style={{ height: "14px", width: "50%", background: "var(--panel2)", borderRadius: "4px" }} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Error State with Retry */}
+      {!loading && error && (
+        <div className="panel" style={{ padding: "28px", textAlign: "center", borderRadius: "16px", border: "1px solid rgba(220, 38, 38, 0.3)" }}>
+          <AlertCircle size={32} color="var(--rose)" style={{ margin: "0 auto 10px" }} />
+          <h3 style={{ margin: "0 0 8px", color: "var(--text-heading)" }}>Failed to load complaints from database</h3>
+          <p style={{ color: "var(--muted)", fontSize: "14px", margin: "0 auto 16px", maxWidth: "400px" }}>{error}</p>
+          <button type="button" className="primary" onClick={onRetry} style={{ padding: "8px 20px" }}>
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Complaints List */}
-      {filteredList.length === 0 ? (
+      {!loading && !error && filteredList.length === 0 ? (
         <div className="emptyGrievancesCard">
           <div className="emptyGrievanceIcon">
             <FileText size={32} />
@@ -272,32 +301,44 @@ export function MyComplaints({
                     </div>
                   </div>
 
-                  {/* Government Action Note */}
+                  {/* Honest Citizen Redressal Status Note (Reflects citizen action only) */}
                   <p style={{ margin: 0, fontSize: "12px", color: "var(--muted)", lineHeight: 1.5 }}>
-                    <strong style={{ color: "var(--text)" }}>{isHi ? "सरकारी अद्यतन (Govt Update): " : "Government Update: "}</strong>
+                    <strong style={{ color: "var(--text)" }}>{isHi ? "नागरिक स्थिति (Citizen Status): " : "Citizen Status: "}</strong>
                     {c.status === "resolved"
-                      ? (isHi ? "स्थल पर सुधार कार्य पूर्ण कर एक्शन टेकन रिपोर्ट (ATR) दर्ज की गई।" : "Work completed on site. Photographic evidence verified and Action Taken Report (ATR) closed.")
+                      ? (isHi ? "स्थल पर सुधार कार्य पूर्ण होना नागरिक द्वारा सत्यापित किया गया और फोटो संलग्न की गई।" : "Ground resolution verified on site by citizen with photographic confirmation.")
                       : c.status === "escalated"
-                      ? (isHi ? "विभागीय देरी के कारण प्रथम अपीलीय अधिकारी (FAA) को धारा 19(1) के तहत अपील भेजी गई।" : "Due to SLA default, First Appeal & Section 6(1) RTI dossier transmitted to First Appellate Authority.")
+                      ? (isHi ? "विभागीय समय सीमा समाप्त होने पर प्रथम अपीलीय अधिकारी को आरटीआई एस्केलेशन भेजा गया।" : "Citizen submitted First Appeal / RTI escalation dossier due to expired statutory SLA.")
                       : isOverdue
-                      ? (isHi ? `सिटीजन चार्टर की ${c.expectedResolutionDays} दिनों की समय सीमा समाप्त हो चुकी है। जनसेतु एआई के माध्यम से आरटीआई अपील दर्ज करने की अनुशंसा की जाती है।` : `The ${c.expectedResolutionDays}-day resolution SLA has elapsed without official portal closure. RTI Appeal recommended.`)
-                      : (isHi ? `शिकायत फ़ाइल ${c.dept} के क्षेत्राधिकार में जांचाधीन है। नोडल टीम द्वारा फील्ड सत्यापन किया जा रहा है।` : `Grievance dossier is under active desk review at ${c.dept}. Field inspection and work requisition underway.`)}
+                      ? (isHi ? `नागरिक चार्टर समय सीमा समाप्त हो चुकी है। आरटीआई अपील प्रारूप तैयार है।` : `Citizen filing date indicates SLA response window has elapsed. RTI escalation pack prepared.`)
+                      : (isHi ? `नागरिक द्वारा आधिकारिक पोर्टल (${c.portal_name || c.portalName || "CPGRAMS"}) पर संदर्भ संख्या दर्ज की गई।` : `Citizen confirmed filing with reference ID on official portal (${c.portal_name || c.portalName || "CPGRAMS"}).`)}
                   </p>
                 </div>
 
                 {/* Action Buttons */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    {/* Escalation Button (When overdue or filed) */}
+                    {/* Escalation Button: replaced with 'View escalation pack' after escalation */}
                     {c.status !== "resolved" && c.status !== "draft" && (
-                      <button
-                        type="button"
-                        className="escalateActionBtn"
-                        onClick={() => setActiveEscalationComplaint(c)}
-                      >
-                        <ShieldAlert size={14} />
-                        <span>{t("tabRti")} / Escalate</span>
-                      </button>
+                      c.status === "escalated" ? (
+                        <button
+                          type="button"
+                          className="escalateActionBtn"
+                          onClick={() => setActiveEscalationComplaint(c)}
+                          style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10B981", borderColor: "#10B981" }}
+                        >
+                          <FileText size={14} />
+                          <span>View escalation pack</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="escalateActionBtn"
+                          onClick={() => setActiveEscalationComplaint(c)}
+                        >
+                          <ShieldAlert size={14} />
+                          <span>{t("tabRti")} / Escalate</span>
+                        </button>
+                      )
                     )}
 
                     {/* Verify Resolution Button */}
@@ -349,24 +390,53 @@ export function MyComplaints({
                   </div>
                 </div>
 
-                {/* Expanded Timeline & Evidence Details */}
+                {/* Expanded Timeline & Evidence Details (reads complaint_events in order) */}
                 {isExpanded && (
                   <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--line)" }}>
                     <h4 style={{ margin: "0 0 10px", fontSize: "13px", color: "var(--muted)", textTransform: "uppercase" }}>
                       Event Timeline (Audited Events)
                     </h4>
                     <div style={{ display: "grid", gap: "8px" }}>
-                      {(c.timeline || []).map((step, idx) => (
-                        <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "13px" }}>
+                      {(c.events || c.timeline || []).map((step, idx) => (
+                        <div key={step.id || idx} style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "13px" }}>
                           <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--blue)", marginTop: "6px" }} />
                           <div>
-                            <strong>{step.title}</strong>
-                            <span style={{ fontSize: "11px", color: "var(--muted)", marginLeft: "8px" }}>{step.date}</span>
-                            <div style={{ fontSize: "12px", color: "var(--muted)" }}>{step.note} ({step.actor || "System"})</div>
+                            <strong>{step.title || (step.type ? `Event: ${step.type.toUpperCase()}` : "Grievance Update")}</strong>
+                            <span style={{ fontSize: "11px", color: "var(--muted)", marginLeft: "8px" }}>
+                              {step.created_at ? new Date(step.created_at).toLocaleString() : step.date}
+                            </span>
+                            <div style={{ fontSize: "12px", color: "var(--muted)" }}>{step.note} ({step.actor || "Citizen / JanSetu"})</div>
                           </div>
                         </div>
                       ))}
                     </div>
+
+                    {/* Photos from Supabase Storage */}
+                    {(c.photos?.length > 0 || c.evidencePhotos?.length > 0) && (
+                      <div style={{ marginTop: "14px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", display: "block", marginBottom: "6px" }}>
+                          EVIDENCE PHOTOS ({c.photos?.length || c.evidencePhotos?.length})
+                        </span>
+                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                          {(c.photos || []).map((p) => (
+                            <img
+                              key={p.id}
+                              src={p.url}
+                              alt="Complaint Evidence"
+                              style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--line)" }}
+                            />
+                          ))}
+                          {(!c.photos || c.photos.length === 0) && (c.evidencePhotos || []).map((imgUrl, i) => (
+                            <img
+                              key={i}
+                              src={imgUrl}
+                              alt="Complaint Evidence"
+                              style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--line)" }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Before / After Photo Comparison if Resolved */}
                     {c.status === "resolved" && (
@@ -377,11 +447,19 @@ export function MyComplaints({
                         <div className="beforeAfterContainer">
                           <div className="beforeAfterBox">
                             <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)" }}>{t("beforeLabel")}</span>
-                            {c.evidencePhotos?.[0] ? <img src={c.evidencePhotos[0]} alt="Before" /> : <div style={{ height: "140px", display: "grid", placeItems: "center" }}>No photo</div>}
+                            {c.photos?.find(p => p.kind === "before")?.url || c.evidencePhotos?.[0] ? (
+                              <img src={c.photos?.find(p => p.kind === "before")?.url || c.evidencePhotos[0]} alt="Before" />
+                            ) : (
+                              <div style={{ height: "140px", display: "grid", placeItems: "center" }}>No photo</div>
+                            )}
                           </div>
                           <div className="beforeAfterBox">
                             <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--emerald)" }}>{t("afterLabel")}</span>
-                            {c.afterPhoto ? <img src={c.afterPhoto} alt="After" /> : <div style={{ height: "140px", display: "grid", placeItems: "center" }}>Verified on site</div>}
+                            {c.photos?.find(p => p.kind === "after")?.url || c.afterPhoto ? (
+                              <img src={c.photos?.find(p => p.kind === "after")?.url || c.afterPhoto} alt="After" />
+                            ) : (
+                              <div style={{ height: "140px", display: "grid", placeItems: "center" }}>Verified on site</div>
+                            )}
                           </div>
                         </div>
                       </div>

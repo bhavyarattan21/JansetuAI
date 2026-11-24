@@ -277,7 +277,7 @@ export function PrepareAndFile({
     };
 
     setConfirmedComplaint(newRecord);
-    onComplaintFiled(newRecord);
+    onComplaintFiled(newRecord, photos);
     setStep(4);
     notify(isHi ? "शिकायत सफलतापूर्वक ट्रैकर में जोड़ी गई!" : "Complaint added to your tracking record!");
   };

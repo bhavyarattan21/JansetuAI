@@ -4,6 +4,7 @@ import {
   Trash2, Mic, MicOff, Camera, X, Copy, Check, RefreshCw, AlertCircle
 } from "lucide-react";
 import { sendChatMessage } from "../services/ai";
+import { loadChatMessages, saveChatMessage, clearChatHistory } from "../lib/chat";
 
 export function CivicCoPilot({
   chat,
@@ -11,6 +12,7 @@ export function CivicCoPilot({
   contextItem,
   onClearContext,
   onRouteWithComplaint,
+  user,
   lang,
   t,
   notify
@@ -46,6 +48,23 @@ export function CivicCoPilot({
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [chat, isTyping]);
+
+  // Load last 50 chat messages from Supabase chat_messages table
+  useEffect(() => {
+    let mounted = true;
+    if (user?.id) {
+      loadChatMessages(user.id, 50).then(msgs => {
+        if (mounted && msgs && msgs.length > 0) {
+          setChat(msgs.map(m => ({
+            role: m.role,
+            text: m.content,
+            timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          })));
+        }
+      });
+    }
+    return () => { mounted = false; };
+  }, [user?.id]);
 
   const handleScroll = () => {
     if (!messagesContainerRef.current) return;
@@ -135,6 +154,10 @@ export function CivicCoPilot({
     setIsTyping(true);
     userScrolledUpRef.current = false;
 
+    if (user?.id && textToSend) {
+      saveChatMessage(user.id, "user", textToSend);
+    }
+
     try {
       // Call Gemini API via /api/chat
       const response = await sendChatMessage({
@@ -155,6 +178,10 @@ export function CivicCoPilot({
       };
 
       setChat(prev => [...prev, assistantMessage]);
+
+      if (user?.id && response.text) {
+        saveChatMessage(user.id, "assistant", response.text);
+      }
     } catch (err) {
       console.error("Chat error:", err);
       setChat(prev => [
@@ -172,11 +199,14 @@ export function CivicCoPilot({
     }
   };
 
-  // Clear conversation handler
-  const confirmClearChat = () => {
+  // Clear conversation handler (deletes user's chat rows from chat_messages table)
+  const confirmClearChat = async () => {
     setChat([]);
+    if (user?.id) {
+      await clearChatHistory(user.id);
+    }
     try {
-      localStorage.removeItem("jansetu_chat_v3");
+      localStorage.removeItem("jansetu_copilot_chat");
     } catch (e) {}
     setShowClearConfirm(false);
     notify(isHi ? "बातचीत साफ़ कर दी गई।" : "Conversation cleared.");
