@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { uploadComplaintPhoto } from "./photos";
 
 /**
  * Inserts 5 clearly labelled demo complaints with relative dates for the current user
@@ -130,6 +131,25 @@ export async function loadDemoScenario(userId) {
         ? "RTI First Appeal lodged due to expired statutory SLA"
         : (c.status === "resolved" ? "Citizen verified resolution on ground" : `Status: ${c.status}`)
     });
+  }
+
+  // Upload genuine water crisis evidence photo for the Water Supply complaint
+  const waterComplaint = (data || []).find((c) => c.category === "Water Supply");
+  if (waterComplaint) {
+    try {
+      const res = await fetch("/demo-water-crisis.webp");
+      if (res.ok) {
+        const blob = await res.blob();
+        await uploadComplaintPhoto({
+          userId,
+          complaintId: waterComplaint.id,
+          fileOrBlobOrDataUrl: blob,
+          kind: "before"
+        });
+      }
+    } catch (photoErr) {
+      console.warn("Demo water crisis photo upload notice:", photoErr);
+    }
   }
 
   return data;

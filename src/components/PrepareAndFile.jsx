@@ -646,6 +646,46 @@ export function PrepareAndFile({
                   </label>
                 </div>
 
+                {/* Quick Attach Sample Civic Photo */}
+                <div style={{ marginBottom: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/demo-water-crisis.webp");
+                        const blob = await res.blob();
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                          setPhotos((prev) => [...prev.slice(0, 2), e.target.result]);
+                          setCategory("water");
+                          setDescription((prev) => prev || (isHi ? "वार्ड में जल आपूर्ति बंद है, लोग पानी के टैंकर के पीछे कतार में हैं।" : "Severe drinking water shortage in the ward; citizens waiting in long queues for emergency water tanker."));
+                          notify(isHi ? "नमूना जल संकट फोटो संलग्न की गई!" : "Sample water tanker crisis photo attached!");
+                        };
+                        reader.readAsDataURL(blob);
+                      } catch (err) {
+                        console.warn("Sample photo load notice:", err);
+                      }
+                    }}
+                    disabled={photos.length >= 3}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "6px 12px",
+                      borderRadius: "8px",
+                      border: "1px dashed var(--blue)",
+                      background: "rgba(37, 99, 235, 0.06)",
+                      color: "var(--blue)",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: "pointer"
+                    }}
+                  >
+                    <Sparkles size={13} />
+                    <span>{isHi ? "+ नमूना जल संकट फोटो जोड़ें" : "+ Attach Sample Civic Photo (Water Tanker Crisis)"}</span>
+                  </button>
+                </div>
+
                 {/* Privacy Warning */}
                 <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "12px" }}>
                   🔒 <em>Privacy Note: Please avoid capturing citizen faces or vehicle registration plates.</em>
