@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { generateComplaintDraft, analyzePhotoForComplaint } from "../services/ai";
 import { getPortalForCategory } from "../data/portals";
-import { LocationPickerMap, SOHNA_LANDMARKS, DEFAULT_CENTER, getNearestLandmark } from "./LocationPickerMap";
+import { LocationPickerMap, POPULAR_LOCATIONS, DEFAULT_CENTER } from "./LocationPickerMap";
 import { triggerGoogleSignIn } from "../utils/googleAuth";
 
 export function PrepareAndFile({
@@ -24,50 +24,80 @@ export function PrepareAndFile({
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState(initialData?.category || "roads");
   const portalInfo = getPortalForCategory(category);
-  const [location, setLocation] = useState(initialData?.location || "Sohna Bus Stand Chowk, Ward 4, Sohna, Haryana");
+  const [location, setLocation] = useState(initialData?.location || "");
   const [coords, setCoords] = useState(DEFAULT_CENTER);
   const [description, setDescription] = useState(initialData?.extractedSummary || initialData?.description || "");
   const [urgency, setUrgency] = useState(initialData?.urgency || "high");
   const [showInlineMap, setShowInlineMap] = useState(true);
 
-  // Quick GPS Location Detector
+  // Quick GPS Location Detector (Pan-India & Global Coverage)
   const handleDetectGpsLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+      alert(isHi ? "आपके ब्राउज़र में जीपीएस सेवा उपलब्ध नहीं है।" : "Geolocation is not supported by your browser.");
       return;
     }
-    notify?.(isHi ? "जीपीएस स्थान खोजा जा रहा है..." : "Detecting GPS location...");
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setCoords({ lat, lng });
+    notify?.(isHi ? "जीपीएस स्थान खोजा जा रहा है..." : "Detecting real-time GPS location...");
 
-        // Instant 0ms update from nearest landmark
-        const nearest = getNearestLandmark(lat, lng);
-        const instantDisplay = Math.hypot(nearest.lat - lat, nearest.lng - lng) < 0.003
-          ? `Near ${nearest.label}, Sohna, Haryana (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`
-          : `Civic Point (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E), Near ${nearest.label}, Sohna, Haryana`;
-        setLocation(instantDisplay);
-        notify?.(isHi ? "जीपीएस स्थान 'स्थान / लैंडमार्क' में जोड़ा गया!" : "GPS location added to Location / Landmark!");
+    const onGpsSuccess = async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      setCoords({ lat, lng });
 
-        // Background refinement via Nominatim
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-          if (res.ok) {
-            const data = await res.json();
-            const display = data.display_name?.split(",").slice(0, 4).join(",") || instantDisplay;
-            setLocation(display);
+      const instant = `Current Location (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`;
+      setLocation(instant);
+
+      // Reverse geocode via OpenStreetMap Nominatim
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        if (res.ok) {
+          const data = await res.json();
+          const addr = data.address || {};
+          const parts = [
+            addr.amenity || addr.road || addr.pedestrian,
+            addr.neighbourhood || addr.suburb,
+            addr.city || addr.town || addr.village || addr.city_district,
+            addr.state
+          ].filter(Boolean);
+          const refined = parts.length > 0 ? `${parts.join(", ")} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)` : instant;
+          setLocation(refined);
+          notify?.(isHi ? "जीपीएस स्थान फॉर्म में अपडेट हुआ!" : "GPS location updated in form!");
+          return;
+        }
+      } catch (e) {}
+
+      // Secondary client fallback via BigDataCloud
+      try {
+        const res2 = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
+        if (res2.ok) {
+          const data2 = await res2.json();
+          const parts2 = [data2.locality, data2.city, data2.principalSubdivision].filter(Boolean);
+          if (parts2.length > 0) {
+            setLocation(`${parts2.join(", ")} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`);
+            notify?.(isHi ? "जीपीएस स्थान फॉर्म में अपडेट हुआ!" : "GPS location updated in form!");
+            return;
           }
-        } catch (e) {}
-      },
-      (err) => {
-        console.warn("GPS error:", err);
-        notify?.(isHi ? "डिफ़ॉल्ट सोहना लैंडमार्क चुना गया।" : "Selected Sohna Bus Stand Chowk.");
-        setLocation(SOHNA_LANDMARKS[0].address);
-        setCoords({ lat: SOHNA_LANDMARKS[0].lat, lng: SOHNA_LANDMARKS[0].lng });
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
+        }
+      } catch (e) {}
+
+      notify?.(isHi ? "जीपीएस निर्देशांक सेट किए गए!" : "GPS coordinates set!");
+    };
+
+    const onGpsError = (err) => {
+      console.warn("GPS high-accuracy timeout, retrying with standard network IP:", err);
+      navigator.geolocation.getCurrentPosition(
+        onGpsSuccess,
+        (finalErr) => {
+          console.warn("GPS failed:", finalErr);
+          notify?.(isHi ? "कृपया ब्राउज़र में लोकेशन अनुमति दें।" : "Please allow location access in your browser or search on the map.");
+        },
+        { enableHighAccuracy: false, timeout: 7000 }
+      );
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      onGpsSuccess,
+      onGpsError,
+      { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
     );
   };
 
@@ -413,7 +443,7 @@ export function PrepareAndFile({
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. Near Shiv Kund Chowk, Pole #14, Sohna, Haryana"
+                    placeholder={isHi ? "उदा. मुख्य सड़क, वार्ड नंबर 4, बस स्टैंड के पास (या नीचे नक्शे पर क्लिक करें)" : "e.g. Near Market Chowk, Main Road, Ward 4 (or click anywhere on map below)"}
                     required
                     style={{
                       width: "100%",
@@ -434,14 +464,14 @@ export function PrepareAndFile({
                     <span>
                       {coords
                         ? `${isHi ? "मानचित्र पिन सेट:" : "Map Pin:"} ${coords.lat.toFixed(4)}° N, ${coords.lng.toFixed(4)}° E`
-                        : "28.2468° N, 77.0617° E"}
+                        : "28.6139° N, 77.2090° E"}
                     </span>
                     <span style={{ color: "var(--muted)", fontWeight: 400 }}>
                       ({isHi ? "नीचे नक्शे पर क्लिक करके बदलें" : "Click map below to set"})
                     </span>
                   </span>
                   <span style={{ fontSize: "11px", color: "var(--muted)" }}>
-                    Sohna Municipal Ward
+                    {isHi ? "वार्ड / नगर निकाय" : "Municipal Ward / Local Body"}
                   </span>
                 </div>
 
@@ -674,7 +704,7 @@ export function PrepareAndFile({
                   <span>{isHi ? "फॉर्म में सक्रिय स्थान:" : "Active Form Location:"}</span>
                 </div>
                 <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-heading)", lineHeight: 1.4 }}>
-                  {location || "Sohna Bus Stand Chowk, Ward 4, Sohna, Haryana"}
+                  {location || (isHi ? "मानचित्र पर स्थान चुनें या जीपीएस का उपयोग करें" : "Select location on map or use GPS")}
                 </div>
               </div>
 
@@ -697,7 +727,7 @@ export function PrepareAndFile({
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ color: "var(--muted)" }}>{isHi ? "अपीलीय नोडल अधिकारी:" : "Escalation Authority:"}</span>
-                  <span style={{ color: "var(--text-heading)", fontWeight: 600 }}>SDM Sohna / CM Window</span>
+                  <span style={{ color: "var(--text-heading)", fontWeight: 600 }}>{isHi ? "एसडीएम / जिला लोक शिकायत अधिकारी / सीएम हेल्पलाइन" : "Sub-Divisional Magistrate (SDM) / District Grievance Officer / CM Helpline"}</span>
                 </div>
               </div>
             </div>
