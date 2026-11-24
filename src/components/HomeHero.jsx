@@ -112,7 +112,7 @@ export function HomeHero({
             border: "2px solid var(--blue)",
             borderRadius: "18px",
             padding: "8px 10px 8px 18px",
-            boxShadow: "0 8px 30px rgba(29, 78, 216, 0.12)",
+            boxShadow: "0 8px 30px rgba(15, 118, 110, 0.15)",
             gap: "12px",
             position: "relative",
             width: "100%",

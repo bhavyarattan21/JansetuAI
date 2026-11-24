@@ -9,9 +9,9 @@ const DEPT_MONOGRAMS = {
     code: "REV",
     deptName: "Revenue Dept / Tehsildar",
     deptNameHi: "राजस्व विभाग / तहसीलदार",
-    bg: "rgba(2, 132, 199, 0.12)",
-    color: "#0284C7",
-    border: "rgba(2, 132, 199, 0.28)"
+    bg: "rgba(15, 118, 110, 0.12)",
+    color: "#0F766E",
+    border: "rgba(15, 118, 110, 0.28)"
   },
   caste_cert: {
     code: "SDM",
@@ -115,7 +115,7 @@ export function DocumentsHub({
             deptNameHi: doc.deptHi,
             bg: "var(--blue-subtle)",
             color: "var(--blue)",
-            border: "rgba(29, 78, 216, 0.25)"
+            border: "rgba(15, 118, 110, 0.25)"
           };
 
           return (

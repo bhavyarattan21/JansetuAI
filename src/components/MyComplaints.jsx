@@ -150,7 +150,7 @@ export function MyComplaints({
                 style={{
                   borderRadius: "16px",
                   padding: "20px 24px",
-                  border: isOverdue && c.status !== "resolved" ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid var(--line)",
+                  border: isOverdue && c.status !== "resolved" ? "1px solid rgba(220, 38, 38, 0.4)" : "1px solid var(--line)",
                   transition: "all 0.2s ease"
                 }}
               >

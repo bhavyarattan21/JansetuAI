@@ -12,7 +12,7 @@ const CATEGORY_COLORS = {
   "Agriculture & Farmers": { bg: "#ecfdf5", border: "#a7f3d0", text: "#065f46", gradient: "linear-gradient(135deg, #059669, #10b981)", icon: Sprout },
   "Healthcare": { bg: "#fdf2f8", border: "#fbcfe8", text: "#9d174d", gradient: "linear-gradient(135deg, #e11d48, #f43f5e)", icon: HeartPulse },
   "Housing": { bg: "#fffbeb", border: "#fde68a", text: "#92400e", gradient: "linear-gradient(135deg, #d97706, #f59e0b)", icon: Home },
-  "Business & Entrepreneurship": { bg: "#eff6ff", border: "#bfdbfe", text: "#1e40af", gradient: "linear-gradient(135deg, #1d4ed8, #3b82f6)", icon: Store },
+  "Business & Entrepreneurship": { bg: "#f0fdfa", border: "#ccfbf1", text: "#0f766e", gradient: "linear-gradient(135deg, #0f766e, #14b8a6)", icon: Store },
   "Women & Child": { bg: "#faf5ff", border: "#e9d5ff", text: "#6b21a8", gradient: "linear-gradient(135deg, #7c3aed, #a855f7)", icon: Heart },
   "Artisans & Craftsmen": { bg: "#fefce8", border: "#fef08a", text: "#854d0e", gradient: "linear-gradient(135deg, #b45309, #d97706)", icon: Wrench },
   "Youth & Skill Development": { bg: "#f0fdfa", border: "#99f6e4", text: "#115e59", gradient: "linear-gradient(135deg, #0f766e, #14b8a6)", icon: GraduationCap },
@@ -21,13 +21,13 @@ const CATEGORY_COLORS = {
   "Street Vendors & Micro Trade": { bg: "#fff7ed", border: "#fed7aa", text: "#9a3412", gradient: "linear-gradient(135deg, #c2410c, #f97316)", icon: Store },
   "Women & Energy": { bg: "#fff1f2", border: "#fecdd3", text: "#9f1239", gradient: "linear-gradient(135deg, #be123c, #fb7185)", icon: Flame },
   "Entrepreneurship": { bg: "#f5f3ff", border: "#ddd6fe", text: "#5b21b6", gradient: "linear-gradient(135deg, #6d28d9, #8b5cf6)", icon: Briefcase },
-  "Innovation & Startups": { bg: "#eff6ff", border: "#bfdbfe", text: "#1e40af", gradient: "linear-gradient(135deg, #2563eb, #60a5fa)", icon: Lightbulb },
+  "Innovation & Startups": { bg: "#f0fdfa", border: "#ccfbf1", text: "#0f766e", gradient: "linear-gradient(135deg, #0f766e, #2dd4bf)", icon: Lightbulb },
   "Unorganized Workers": { bg: "#f1f5f9", border: "#cbd5e1", text: "#334155", gradient: "linear-gradient(135deg, #334155, #64748b)", icon: Layers },
   "Senior Citizens": { bg: "#f8fafc", border: "#e2e8f0", text: "#475569", gradient: "linear-gradient(135deg, #64748b, #94a3b8)", icon: UserCheck },
   "Widow Welfare": { bg: "#fdf2f8", border: "#fce7f3", text: "#831843", gradient: "linear-gradient(135deg, #be185d, #ec4899)", icon: Heart },
   "Education & Scholarships": { bg: "#f0fdfa", border: "#ccfbf1", text: "#134e4a", gradient: "linear-gradient(135deg, #0d9488, #2dd4bf)", icon: GraduationCap },
   "Manufacturing & Self-Employment": { bg: "#fffbeb", border: "#fef3c7", text: "#78350f", gradient: "linear-gradient(135deg, #b45309, #f59e0b)", icon: Briefcase },
-  "Employment & Jobs": { bg: "#eff6ff", border: "#dbeafe", text: "#1e3a8a", gradient: "linear-gradient(135deg, #1d4ed8, #3b82f6)", icon: Briefcase },
+  "Employment & Jobs": { bg: "#f0fdfa", border: "#ccfbf1", text: "#134e4a", gradient: "linear-gradient(135deg, #0f766e, #14b8a6)", icon: Briefcase },
   "Maternal Health & Women": { bg: "#fdf2f8", border: "#fbcfe8", text: "#9d174d", gradient: "linear-gradient(135deg, #db2777, #f472b6)", icon: Heart },
   "Persons with Disabilities": { bg: "#f5f3ff", border: "#ede9fe", text: "#4c1d95", gradient: "linear-gradient(135deg, #7c3aed, #a78bfa)", icon: Shield },
   "Fisheries & Aquaculture": { bg: "#ecfeff", border: "#cffafe", text: "#155e75", gradient: "linear-gradient(135deg, #0891b2, #06b6d4)", icon: Droplets },
@@ -304,7 +304,7 @@ export function SchemeFinder({
                 bg: "#f1f5f9",
                 border: "#cbd5e1",
                 text: "#334155",
-                gradient: "linear-gradient(135deg, #1d4ed8, #2563eb)",
+                gradient: "linear-gradient(135deg, #0f766e, #14b8a6)",
                 icon: Sparkles
               };
               const CatIcon = catConfig.icon;

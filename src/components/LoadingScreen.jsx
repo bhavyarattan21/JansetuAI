@@ -114,8 +114,8 @@ export function LoadingScreen({ onFinish, minDuration = 850 }) {
               width: "7px",
               height: "7px",
               borderRadius: "50%",
-              background: "#38BDF8",
-              boxShadow: "0 0 10px #38BDF8",
+              background: "#14B8A6",
+              boxShadow: "0 0 10px #14B8A6",
               position: "absolute",
               top: "0px",
               left: "50%",
@@ -195,10 +195,10 @@ export function LoadingScreen({ onFinish, minDuration = 850 }) {
             style={{
               width: `${progress}%`,
               height: "100%",
-              background: "linear-gradient(90deg, #1D4ED8 0%, #38BDF8 50%, #2563EB 100%)",
+              background: "linear-gradient(90deg, #0F766E 0%, #14B8A6 50%, #0F766E 100%)",
               borderRadius: "999px",
               transition: "width 0.08s ease-out",
-              boxShadow: "0 0 12px rgba(56, 189, 248, 0.5)"
+              boxShadow: "0 0 12px rgba(20, 184, 166, 0.5)"
             }}
           />
         </div>
