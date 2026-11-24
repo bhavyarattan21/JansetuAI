@@ -426,6 +426,23 @@ function App() {
       resolvedId = authData?.user?.id;
     }
 
+    if (supabase) {
+      try {
+        await supabase.auth.updateUser({
+          email: u.email,
+          data: {
+            full_name: u.name,
+            name: u.name,
+            avatar_url: u.picture,
+            email: u.email,
+            provider: "google"
+          }
+        });
+      } catch (e) {
+        console.warn("Supabase user update notice:", e);
+      }
+    }
+
     const mergedUser = {
       ...(user || {}),
       ...u,

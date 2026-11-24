@@ -3,7 +3,7 @@
 
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  full_name text, phone text, state text,
+  full_name text, email text, phone text, state text,
   language text default 'en',
   scheme_profile jsonb,
   created_at timestamptz default now()

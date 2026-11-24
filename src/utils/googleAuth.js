@@ -78,9 +78,20 @@ export function triggerGoogleSignIn(onSuccess, onError) {
                   loginTime: new Date().toLocaleString()
                 };
 
-                // Sync directly to Supabase profiles table
+                // Sync directly to Supabase Auth user metadata & profiles table
                 if (supabase) {
                   try {
+                    await supabase.auth.updateUser({
+                      email: user.email,
+                      data: {
+                        full_name: user.name,
+                        name: user.name,
+                        avatar_url: user.picture,
+                        email: user.email,
+                        provider: "google"
+                      }
+                    });
+
                     const { data: authData } = await supabase.auth.getUser();
                     if (authData?.user?.id) {
                       await supabase.from("profiles").upsert({
