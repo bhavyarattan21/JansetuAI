@@ -30,74 +30,69 @@ export function PrepareAndFile({
   const [urgency, setUrgency] = useState(initialData?.urgency || "high");
   const [showInlineMap, setShowInlineMap] = useState(true);
 
-  // Quick GPS Location Detector (Pan-India & Global Coverage)
-  const handleDetectGpsLocation = () => {
-    if (!navigator.geolocation) {
-      alert(isHi ? "आपके ब्राउज़र में जीपीएस सेवा उपलब्ध नहीं है।" : "Geolocation is not supported by your browser.");
-      return;
-    }
-    notify?.(isHi ? "जीपीएस स्थान खोजा जा रहा है..." : "Detecting real-time GPS location...");
+  // Quick GPS Location Detector (Pan-India & Global Coverage with Seamless IP Fallback)
+  const handleDetectGpsLocation = async () => {
+    notify?.(isHi ? "स्थान का पता लगाया जा रहा है..." : "Detecting real-time location...");
 
-    const onGpsSuccess = async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
+    const applyLocation = (lat, lng, label) => {
       setCoords({ lat, lng });
+      const display = label || `Current Location (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`;
+      setLocation(display);
+      notify?.(isHi ? "स्थान फॉर्म में अपडेट हुआ!" : "Location updated in form!");
+    };
 
-      const instant = `Current Location (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`;
-      setLocation(instant);
-
-      // Reverse geocode via OpenStreetMap Nominatim
+    const fallbackToIp = async () => {
+      // 1. BigDataCloud Client IP Geo
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const res = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client");
         if (res.ok) {
           const data = await res.json();
-          const addr = data.address || {};
-          const parts = [
-            addr.amenity || addr.road || addr.pedestrian,
-            addr.neighbourhood || addr.suburb,
-            addr.city || addr.town || addr.village || addr.city_district,
-            addr.state
-          ].filter(Boolean);
-          const refined = parts.length > 0 ? `${parts.join(", ")} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)` : instant;
-          setLocation(refined);
-          notify?.(isHi ? "जीपीएस स्थान फॉर्म में अपडेट हुआ!" : "GPS location updated in form!");
-          return;
-        }
-      } catch (e) {}
-
-      // Secondary client fallback via BigDataCloud
-      try {
-        const res2 = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
-        if (res2.ok) {
-          const data2 = await res2.json();
-          const parts2 = [data2.locality, data2.city, data2.principalSubdivision].filter(Boolean);
-          if (parts2.length > 0) {
-            setLocation(`${parts2.join(", ")} (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`);
-            notify?.(isHi ? "जीपीएस स्थान फॉर्म में अपडेट हुआ!" : "GPS location updated in form!");
+          if (data.latitude && data.longitude) {
+            const parts = [data.locality || data.city, data.principalSubdivision, data.countryName].filter(Boolean);
+            applyLocation(data.latitude, data.longitude, `${parts.join(", ")} (${data.latitude.toFixed(4)}° N, ${data.longitude.toFixed(4)}° E)`);
             return;
           }
         }
       } catch (e) {}
 
-      notify?.(isHi ? "जीपीएस निर्देशांक सेट किए गए!" : "GPS coordinates set!");
+      // 2. ipwho.is Client IP Geo
+      try {
+        const res2 = await fetch("https://ipwho.is/");
+        if (res2.ok) {
+          const data2 = await res2.json();
+          if (data2.success && data2.latitude && data2.longitude) {
+            const parts = [data2.city, data2.region, data2.country].filter(Boolean);
+            applyLocation(data2.latitude, data2.longitude, `${parts.join(", ")} (${data2.latitude.toFixed(4)}° N, ${data2.longitude.toFixed(4)}° E)`);
+            return;
+          }
+        }
+      } catch (e) {}
     };
 
-    const onGpsError = (err) => {
-      console.warn("GPS high-accuracy timeout, retrying with standard network IP:", err);
-      navigator.geolocation.getCurrentPosition(
-        onGpsSuccess,
-        (finalErr) => {
-          console.warn("GPS failed:", finalErr);
-          notify?.(isHi ? "कृपया ब्राउज़र में लोकेशन अनुमति दें।" : "Please allow location access in your browser or search on the map.");
-        },
-        { enableHighAccuracy: false, timeout: 7000 }
-      );
-    };
+    if (!navigator.geolocation) {
+      fallbackToIp();
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
-      onGpsSuccess,
-      onGpsError,
-      { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+      (pos) => {
+        applyLocation(pos.coords.latitude, pos.coords.longitude);
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=18&addressdetails=1`)
+          .then(r => r.json())
+          .then(data => {
+            const a = data.address || {};
+            const parts = [a.amenity || a.road, a.neighbourhood || a.suburb, a.city || a.town || a.village, a.state].filter(Boolean);
+            if (parts.length > 0) {
+              setLocation(`${parts.join(", ")} (${pos.coords.latitude.toFixed(4)}° N, ${pos.coords.longitude.toFixed(4)}° E)`);
+            }
+          })
+          .catch(() => {});
+      },
+      () => {
+        // High accuracy failed or permission blocked -> seamless IP location
+        fallbackToIp();
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
     );
   };
 

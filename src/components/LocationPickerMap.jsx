@@ -91,6 +91,25 @@ export function LocationPickerMap({
     }
   }, [initialLocation]);
 
+  // On mount: auto-locate user's approximate city via IP if no initial location passed
+  useEffect(() => {
+    if (!initialCoords && !initialLocation) {
+      fetch("https://api.bigdatacloud.net/data/reverse-geocode-client")
+        .then(r => r.json())
+        .then(data => {
+          if (data.latitude && data.longitude) {
+            setCoords({ lat: data.latitude, lng: data.longitude });
+            updateMapPosition(data.latitude, data.longitude, 13);
+            const parts = [data.locality || data.city, data.principalSubdivision, data.countryName].filter(Boolean);
+            const disp = `${parts.join(", ")} (${data.latitude.toFixed(4)}° N, ${data.longitude.toFixed(4)}° E)`;
+            setAddress(disp);
+            onLocationSelected?.({ address: disp, lat: data.latitude, lng: data.longitude });
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
   // Format parsed Nominatim / BigDataCloud payload into clean Indian / Universal address
   const formatAddressPayload = (data, lat, lng) => {
     if (!data) return `Civic Point (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`;
@@ -330,53 +349,81 @@ export function LocationPickerMap({
     };
   }, [googleKey]);
 
-  // Robust 2-Stage "Use My Location" (High-Accuracy GPS with Instant Wi-Fi/IP Fallback)
-  const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert(isHi ? "आपके ब्राउज़र में जीपीएस सेवा उपलब्ध नहीं है।" : "Geolocation is not supported by your browser.");
-      return;
-    }
+  // Robust 3-Stage "Use My Location": Device GPS -> Low Accuracy Network -> Instant IP Geolocation
+  const handleUseCurrentLocation = async () => {
     setIsLocating(true);
 
-    const onGpsSuccess = (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
+    const applyLocationResult = async (lat, lng, labelHint) => {
       const newCoords = { lat, lng };
       setCoords(newCoords);
-      updateMapPosition(lat, lng, 16);
+      updateMapPosition(lat, lng, 15);
 
-      const instantDisplay = `Detected Location (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`;
+      const instantDisplay = labelHint || `Current Location (${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E)`;
       setAddress(instantDisplay);
       setJustSelected(true);
       setTimeout(() => setJustSelected(false), 3000);
 
       onLocationSelected?.({ address: instantDisplay, lat, lng });
-      reverseGeocode(lat, lng);
+      await reverseGeocode(lat, lng);
       setIsLocating(false);
     };
 
-    const onGpsError = (err) => {
-      console.warn("High-accuracy GPS timed out or failed, falling back to network IP location:", err);
-      // Fallback to low-accuracy (Wi-Fi / cellular / IP triangulation, instant on desktop)
-      navigator.geolocation.getCurrentPosition(
-        onGpsSuccess,
-        (secondErr) => {
-          console.warn("All geolocation attempts failed:", secondErr);
-          setIsLocating(false);
-          alert(
-            isHi
-              ? "जीपीएस स्थान नहीं मिल सका। कृपया अपने ब्राउज़र में लोकेशन अनुमति (Allow Location) सक्षम करें।"
-              : "Unable to retrieve your current location. Please check browser location permissions or type your area in the search bar below."
-          );
-        },
-        { enableHighAccuracy: false, timeout: 7000 }
-      );
+    const fallbackToIpLocation = async () => {
+      // 1. Try BigDataCloud Client IP Geo (instant, CORS-friendly, no permission required)
+      try {
+        const ipRes = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client");
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData.latitude && ipData.longitude) {
+            const parts = [ipData.locality || ipData.city, ipData.principalSubdivision, ipData.countryName].filter(Boolean);
+            const label = parts.length > 0 ? `${parts.join(", ")} (${ipData.latitude.toFixed(4)}° N, ${ipData.longitude.toFixed(4)}° E)` : null;
+            applyLocationResult(ipData.latitude, ipData.longitude, label);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 2. Try ipwho.is Client IP Geo fallback
+      try {
+        const ipRes2 = await fetch("https://ipwho.is/");
+        if (ipRes2.ok) {
+          const ipData2 = await ipRes2.json();
+          if (ipData2.success && ipData2.latitude && ipData2.longitude) {
+            const parts = [ipData2.city, ipData2.region, ipData2.country].filter(Boolean);
+            const label = parts.length > 0 ? `${parts.join(", ")} (${ipData2.latitude.toFixed(4)}° N, ${ipData2.longitude.toFixed(4)}° E)` : null;
+            applyLocationResult(ipData2.latitude, ipData2.longitude, label);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      setIsLocating(false);
     };
 
+    // If browser doesn't have navigator.geolocation, use IP directly without error
+    if (!navigator.geolocation) {
+      fallbackToIpLocation();
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
-      onGpsSuccess,
-      onGpsError,
-      { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+      (pos) => {
+        applyLocationResult(pos.coords.latitude, pos.coords.longitude);
+      },
+      (err) => {
+        console.warn("High-accuracy GPS failed, trying low accuracy / IP:", err);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            applyLocationResult(pos.coords.latitude, pos.coords.longitude);
+          },
+          () => {
+            // Permission denied or unavailable -> Seamless IP Location!
+            fallbackToIpLocation();
+          },
+          { enableHighAccuracy: false, timeout: 5000 }
+        );
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
     );
   };
 
