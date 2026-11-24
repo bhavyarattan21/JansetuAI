@@ -24,11 +24,19 @@ export function Footer({ setActive, toggleLanguage, lang, t }) {
       }}>
         {/* Column 1: About */}
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-            <div style={{ width: "30px", height: "30px", borderRadius: "8px", background: "var(--blue)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 800, fontSize: "14px" }}>
-              JS
-            </div>
-            <strong style={{ fontSize: "17px", color: "var(--text-heading)" }}>JanSetu AI</strong>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+            <img
+              src="/jansetu-emblem.svg"
+              alt="JanSetu AI"
+              style={{
+                height: "32px",
+                width: "auto",
+                filter: "drop-shadow(0 2px 6px rgba(0, 180, 255, 0.3))"
+              }}
+            />
+            <strong style={{ fontSize: "18px", color: "var(--text-heading)", fontWeight: 800 }}>
+              JanSetu <span style={{ color: "var(--saffron)" }}>A</span><span style={{ color: "var(--blue)" }}>I</span>
+            </strong>
           </div>
           <p style={{ fontSize: "13px", color: "var(--muted)", lineHeight: 1.6, margin: "0 0 16px" }}>
             {isHi

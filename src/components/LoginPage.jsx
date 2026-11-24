@@ -178,18 +178,19 @@ export function LoginPage({ onLogin, lang, t, notify }) {
       }}>
         {/* Emblem */}
         <div style={{
-          width: "56px",
-          height: "56px",
-          borderRadius: "16px",
-          background: "linear-gradient(135deg, var(--blue), #0284c7)",
-          color: "#ffffff",
-          display: "grid",
-          placeItems: "center",
-          fontSize: "22px",
-          fontWeight: 800,
-          margin: "0 auto 16px"
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: "16px"
         }}>
-          JS
+          <img
+            src="/jansetu-emblem.svg"
+            alt="JanSetu AI"
+            style={{
+              height: "64px",
+              width: "auto",
+              filter: "drop-shadow(0 8px 24px rgba(0, 180, 255, 0.35))"
+            }}
+          />
         </div>
 
         <span className="kicker" style={{ display: "inline-block", marginBottom: "6px" }}>

@@ -52,20 +52,21 @@ export function LoadingScreen({ onFinish, minDuration = 900 }) {
     }}>
       {/* Brand Emblem */}
       <div style={{
-        width: "72px",
-        height: "72px",
-        borderRadius: "20px",
-        background: "linear-gradient(135deg, var(--blue), #0284c7)",
-        color: "#ffffff",
-        display: "grid",
-        placeItems: "center",
-        fontSize: "28px",
-        fontWeight: 800,
-        boxShadow: "0 12px 30px rgba(29, 78, 216, 0.25)",
+        position: "relative",
         marginBottom: "20px",
-        animation: "pulseLogo 1.6s ease infinite"
+        display: "grid",
+        placeItems: "center"
       }}>
-        JS
+        <img
+          src="/jansetu-emblem.svg"
+          alt="JanSetu AI"
+          style={{
+            height: "76px",
+            width: "auto",
+            filter: "drop-shadow(0 10px 28px rgba(0, 180, 255, 0.4))",
+            animation: "pulseLogo 1.6s ease infinite"
+          }}
+        />
       </div>
 
       <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-heading)", margin: "0 0 6px" }}>

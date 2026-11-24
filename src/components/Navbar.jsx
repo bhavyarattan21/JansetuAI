@@ -23,13 +23,22 @@ export function Navbar({
 
       <header className="topbar">
         {/* Brand */}
-        <div className="brand" onClick={() => setActive("home")} style={{ cursor: "pointer" }}>
-          <div className="logoMark" style={{ background: "linear-gradient(135deg, var(--blue), #0284c7)" }}>
-            <span style={{ fontWeight: 800, fontSize: "16px", color: "#fff" }}>JS</span>
-          </div>
+        <div className="brand" onClick={() => setActive("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
+          <img
+            src="/jansetu-emblem.svg"
+            alt="JanSetu AI Logo"
+            style={{
+              height: "38px",
+              width: "auto",
+              objectFit: "contain",
+              filter: "drop-shadow(0 2px 8px rgba(0, 180, 255, 0.35))"
+            }}
+          />
           <div className="brandTitles">
             <div className="brandName" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span>{t("brandTitle")}</span>
+              <span style={{ fontWeight: 800, fontSize: "18px", color: "var(--text-heading)", letterSpacing: "-0.3px" }}>
+                JanSetu <span style={{ color: "var(--saffron)" }}>A</span><span style={{ color: "var(--blue)" }}>I</span>
+              </span>
               <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--blue-subtle)", color: "var(--blue)", fontWeight: 700 }}>
                 COPILOT
               </span>
