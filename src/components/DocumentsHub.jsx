@@ -101,7 +101,7 @@ export function DocumentsHub({
       </div>
 
       {/* Grid of Certificates with Interactive Readiness Checklists */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
+      <div className="docsChecklistGrid">
         {certificatesData.map((doc) => {
           const checkedItems = checkedMap[doc.id] || [];
           const totalItems = doc.checklistItems.length;

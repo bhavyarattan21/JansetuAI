@@ -90,7 +90,7 @@ export function SchemeFinder({
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: "28px", alignItems: "start" }}>
+      <div className="schemeFinderLayout">
         {/* Profile Wizard Form Panel */}
         <div className="panel" style={{ padding: "26px", borderRadius: "20px", position: "sticky", top: "90px" }}>
           <h3 style={{ margin: "0 0 16px", fontSize: "16px", color: "var(--text-heading)", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -321,15 +321,8 @@ export function SchemeFinder({
                   }}
                 >
                   {/* Visual Top Banner (Section F) */}
-                  <div style={{
-                    height: "100px",
-                    background: catConfig.gradient,
-                    padding: "16px 24px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    color: "#ffffff",
-                    position: "relative"
+                  <div className="schemeBannerTop" style={{
+                    background: catConfig.gradient
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                       <div style={{

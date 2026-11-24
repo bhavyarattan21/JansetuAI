@@ -355,20 +355,20 @@ export function PrepareAndFile({
       {/* 4-Step Stepper Bar */}
       <div className="stepperContainer" style={{ maxWidth: "980px" }}>
         <div className={`stepPill ${step === 1 ? "active" : (step > 1 ? "completed" : "")}`}>
-          {step > 1 ? <Check size={14} /> : "1"}
-          <span>{t("step1")}</span>
+          <span className="stepBadge">{step > 1 ? <Check size={14} /> : "1"}</span>
+          <span className="stepText">{t("step1")}</span>
         </div>
         <div className={`stepPill ${step === 2 ? "active" : (step > 2 ? "completed" : "")}`}>
-          {step > 2 ? <Check size={14} /> : "2"}
-          <span>{t("step2")}</span>
+          <span className="stepBadge">{step > 2 ? <Check size={14} /> : "2"}</span>
+          <span className="stepText">{t("step2")}</span>
         </div>
         <div className={`stepPill ${step === 3 ? "active" : (step > 3 ? "completed" : "")}`}>
-          {step > 3 ? <Check size={14} /> : "3"}
-          <span>{t("step3")}</span>
+          <span className="stepBadge">{step > 3 ? <Check size={14} /> : "3"}</span>
+          <span className="stepText">{t("step3")}</span>
         </div>
         <div className={`stepPill ${step === 4 ? "active" : ""}`}>
-          <span>4</span>
-          <span>{t("step4")}</span>
+          <span className="stepBadge">4</span>
+          <span className="stepText">{t("step4")}</span>
         </div>
       </div>
 

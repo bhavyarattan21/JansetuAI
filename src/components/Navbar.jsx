@@ -37,7 +37,7 @@ export function Navbar({
               <span style={{ fontWeight: 800, fontSize: "18px", color: "var(--text-heading)", letterSpacing: "-0.3px" }}>
                 JanSetu <span style={{ color: "var(--saffron)" }}>A</span><span style={{ color: "var(--blue)" }}>I</span>
               </span>
-              <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--blue-subtle)", color: "var(--blue)", fontWeight: 700 }}>
+              <span className="brandCopilotTag" style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "var(--blue-subtle)", color: "var(--blue)", fontWeight: 700 }}>
                 COPILOT
               </span>
             </div>
@@ -105,13 +105,13 @@ export function Navbar({
         <div className="topbarRight" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {/* Language Switcher */}
           <button
-            className="topbarIconBtn"
+            className="topbarIconBtn langSwitcherBtn"
             onClick={toggleLanguage}
             title={lang === "हिन्दी" ? "Switch to English" : "हिंदी में बदलें"}
             style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", borderRadius: "8px", border: "1px solid var(--line)", background: "var(--panel)" }}
           >
             <Languages size={15} color="var(--blue)" />
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-heading)" }}>
+            <span className="langBtnLabel" style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-heading)" }}>
               {lang === "हिन्दी" ? "English" : "हिन्दी"}
             </span>
           </button>
@@ -189,7 +189,7 @@ export function Navbar({
                   "C"
                 )}
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 600, maxWidth: "90px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-heading)" }}>
+              <span className="userProfileName" style={{ fontSize: "12px", fontWeight: 600, maxWidth: "90px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-heading)" }}>
                 {user.name?.split(" ")[0] || "Citizen"}
               </span>
               {user.provider === "google" && (
@@ -203,7 +203,7 @@ export function Navbar({
               style={{ display: "flex", alignItems: "center", gap: "5px", padding: "6px 12px", borderRadius: "8px", background: "var(--blue)", color: "#fff", border: "none", fontSize: "12px", fontWeight: 600 }}
             >
               <LogIn size={14} />
-              <span>Sign In</span>
+              <span className="loginCtaLabel">Sign In</span>
             </button>
           )}
         </div>

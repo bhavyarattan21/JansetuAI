@@ -86,7 +86,7 @@ export function MyComplaints({
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "20px" }}>
+      <div className="filterPillsRow">
         <button
           className={`filterPill ${filter === "all" ? "active" : ""}`}
           onClick={() => setFilter("all")}
