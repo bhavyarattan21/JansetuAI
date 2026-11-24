@@ -23,6 +23,7 @@ export function PrepareAndFile({
 
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState(initialData?.category || "roads");
+  const portalInfo = getPortalForCategory(category);
   const [location, setLocation] = useState(initialData?.location || "Sohna Bus Stand Chowk, Ward 4, Sohna, Haryana");
   const [coords, setCoords] = useState(DEFAULT_CENTER);
   const [description, setDescription] = useState(initialData?.extractedSummary || initialData?.description || "");
@@ -201,7 +202,15 @@ export function PrepareAndFile({
 
   // Step 3: Confirm citizen has filed on portal
   const handleConfirmFiling = () => {
-    const portalInfo = getPortalForCategory(category);
+    if (!user) {
+      triggerGoogleSignIn((u) => {
+        onLogin?.(u);
+        notify(isHi ? `नमस्ते, ${u.name}! Google से लॉगिन हुआ।` : `Signed in as ${u.name}. Saving complaint.`);
+      });
+      notify(isHi ? "शिकायत दर्ज करने हेतु कृपया पहले Google से लॉगिन करें।" : "Please sign in with Google to file and save this complaint.");
+      return;
+    }
+
     const newRecord = {
       id: `JAN-${Date.now().toString().slice(-6)}`,
       isDemo: false,
@@ -248,82 +257,76 @@ export function PrepareAndFile({
     notify(isHi ? "शिकायत सफलतापूर्वक ट्रैकर में जोड़ी गई!" : "Complaint added to your tracking record!");
   };
 
-  // If citizen has not logged in with Google, require login portal before filing
-  if (!user) {
-    return (
-      <main className="page" style={{ maxWidth: "560px", margin: "40px auto 80px", textAlign: "center" }}>
-        <div className="panel" style={{ padding: "40px 32px", borderRadius: "24px", boxShadow: "var(--shadow-lg)" }}>
-          <div style={{
-            width: "60px",
-            height: "60px",
-            borderRadius: "50%",
-            background: "rgba(37, 99, 235, 0.12)",
-            color: "var(--blue)",
-            display: "grid",
-            placeItems: "center",
-            margin: "0 auto 18px"
-          }}>
-            <LogIn size={28} />
+  return (
+    <main className="page" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "60px" }}>
+      {/* Google Login Banner if unauthenticated */}
+      {!user && (
+        <div style={{
+          maxWidth: "980px",
+          margin: "0 auto 20px",
+          padding: "12px 18px",
+          borderRadius: "14px",
+          background: "rgba(37, 99, 235, 0.08)",
+          border: "1px solid rgba(37, 99, 235, 0.25)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "12px"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              background: "var(--blue)",
+              color: "#FFF",
+              display: "grid",
+              placeItems: "center"
+            }}>
+              <LogIn size={16} />
+            </div>
+            <div style={{ fontSize: "13px", color: "var(--text)" }}>
+              <strong>{isHi ? "Google लॉगिन:" : "Google Sign-In Recommended:"}</strong>{" "}
+              {isHi
+                ? "शिकायत प्रारूप तैयार करने के बाद उसे सुरक्षित रूप से सहेजने और ट्रैक करने हेतु लॉगिन करें।"
+                : "Sign in with your Google account so your complaint draft is saved and tracked under your profile."}
+            </div>
           </div>
-
-          <span className="kicker" style={{ color: "var(--blue)" }}>
-            {isHi ? "लॉगिन आवश्यक" : "GOOGLE SIGN-IN REQUIRED TO FILE"}
-          </span>
-          <h2 style={{ fontSize: "22px", color: "var(--text-heading)", margin: "8px 0" }}>
-            {isHi ? "शिकायत दर्ज करने से पहले लॉगिन करें" : "Sign in to Prepare & File Your Grievance"}
-          </h2>
-          <p style={{ color: "var(--muted)", fontSize: "14px", lineHeight: 1.5, margin: "0 auto 24px", maxWidth: "440px" }}>
-            {isHi
-              ? "अपनी शिकायत का AI कानूनी मसौदा सुरक्षित सहेजने, आधिकारिक पोर्टल पावती संदर्भ नंबर ट्रैक करने और सरकारी देरी पर आरटीआई अपील तैयार करने हेतु कृपया अपनी Google आईडी से लॉगिन करें।"
-              : "Please sign in with your Google email account before filing. This securely saves your complaint draft, tracks statutory SLA timelines, and prepares automated RTI appeals if authorities ignore it."}
-          </p>
 
           <button
             type="button"
             onClick={() => {
               triggerGoogleSignIn((u) => {
                 onLogin?.(u);
-                notify?.(isHi ? `नमस्ते, ${u.name}! Google से लॉगिन हुआ।` : `Welcome, ${u.name}! Ready to file.`);
+                notify?.(isHi ? `नमस्ते, ${u.name}!` : `Welcome, ${u.name}!`);
               });
             }}
             style={{
-              width: "100%",
-              padding: "13px 20px",
-              borderRadius: "12px",
-              border: "1px solid var(--line-strong)",
+              padding: "7px 14px",
+              borderRadius: "8px",
               background: "#FFFFFF",
               color: "#1F2937",
+              border: "1px solid var(--line-strong)",
               fontWeight: 700,
-              fontSize: "15px",
-              display: "flex",
+              fontSize: "12px",
+              display: "inline-flex",
               alignItems: "center",
-              justifyContent: "center",
-              gap: "12px",
+              gap: "8px",
               cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
-              marginBottom: "16px"
+              boxShadow: "var(--shadow-sm)"
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 48 48">
+            <svg width="15" height="15" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
               <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            <span>{isHi ? "Google खाते से लॉगिन करें" : "Sign in with Google to Continue"}</span>
+            <span>{isHi ? "Google से लॉगिन करें" : "Sign in with Google"}</span>
           </button>
-
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "12px", color: "var(--muted)" }}>
-            <CheckCircle2 size={14} color="#10B981" />
-            <span>{isHi ? "Google Cloud Console OAuth 2.0 सुरक्षित" : "Secured by Google Cloud Console OAuth 2.0"}</span>
-          </div>
         </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="page" style={{ maxWidth: "1380px", width: "95%", margin: "0 auto", paddingBottom: "60px" }}>
+      )}
       {/* 4-Step Stepper Bar */}
       <div className="stepperContainer" style={{ maxWidth: "980px" }}>
         <div className={`stepPill ${step === 1 ? "active" : (step > 1 ? "completed" : "")}`}>
@@ -935,6 +938,59 @@ export function PrepareAndFile({
               </span>
             </div>
           </div>
+
+          {/* Pre-Filing Google Authentication Box in Step 3 */}
+          {!user && (
+            <div style={{
+              marginTop: "20px",
+              padding: "20px",
+              borderRadius: "14px",
+              background: "rgba(37, 99, 235, 0.06)",
+              border: "1px solid rgba(37, 99, 235, 0.2)",
+              textAlign: "center"
+            }}>
+              <h4 style={{ margin: "0 0 6px", fontSize: "15px", color: "var(--text-heading)", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <LogIn size={18} color="var(--blue)" />
+                <span>{isHi ? "शिकायत दर्ज करने से पहले Google लॉगिन आवश्यक है" : "Google Sign-In Required to Track & File"}</span>
+              </h4>
+              <p style={{ margin: "0 auto 14px", fontSize: "13px", color: "var(--muted)", maxWidth: "460px" }}>
+                {isHi
+                  ? "पोर्टल संदर्भ नंबर को अपने नागरिक रिकॉर्ड से जोड़ने और समय बीतने पर कानूनी आरटीआई अपील तैयार करने हेतु कृपया लॉगिन करें।"
+                  : "Please sign in with your Google account so your portal reference is attached to your citizen profile for statutory SLA tracking and automated RTI appeals."}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerGoogleSignIn((u) => {
+                    onLogin?.(u);
+                    notify?.(isHi ? `नमस्ते, ${u.name}! Google से लॉगिन हुआ।` : `Welcome, ${u.name}!`);
+                  });
+                }}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "10px",
+                  background: "#FFFFFF",
+                  color: "#1F2937",
+                  border: "1px solid var(--line-strong)",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  cursor: "pointer",
+                  boxShadow: "var(--shadow-sm)"
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 48 48">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span>{isHi ? "Google से लॉगिन करें" : "Sign in with Google"}</span>
+              </button>
+            </div>
+          )}
 
           <div style={{ display: "flex", gap: "12px", marginTop: "24px", flexWrap: "wrap" }}>
             <button
