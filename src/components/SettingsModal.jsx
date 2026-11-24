@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import {
   Settings, X, Moon, Sun, Languages, Bell, ShieldCheck,
-  CheckCircle2, MapPin, Key, ExternalLink, Save
+  CheckCircle2, MapPin, Key, ExternalLink, Save, Trash2
 } from "lucide-react";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
 
 export function SettingsModal({
   isOpen,
@@ -11,10 +12,12 @@ export function SettingsModal({
   toggleTheme,
   lang,
   toggleLanguage,
+  onDeleteAllData,
   notify,
   t
 }) {
   const isHi = lang === "हिन्दी";
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
 
   const [selectedWard, setSelectedWard] = useState(() => {
     return localStorage.getItem("jansetu_ward") || "Sohna Municipal Committee (Ward 07)";
@@ -222,6 +225,34 @@ export function SettingsModal({
             </div>
           </div>
 
+          {/* Danger Zone: Citizen Data Privacy */}
+          {onDeleteAllData && (
+            <div className="settingsSection">
+              <span className="settingsSectionTitle" style={{ color: "var(--rose)" }}>
+                {isHi ? "डेटा प्रबंधन (Data Privacy & Danger Zone)" : "Data Privacy & Danger Zone"}
+              </span>
+              <div style={{ background: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.25)", padding: "14px", borderRadius: "10px" }}>
+                <strong style={{ fontSize: "13px", color: "var(--rose)", display: "block", marginBottom: "4px" }}>
+                  {isHi ? "मेरा समस्त नागरिक डेटा हटाएं" : "Purge All My Citizen Data"}
+                </strong>
+                <p style={{ margin: "0 0 12px", fontSize: "12px", color: "var(--muted)", lineHeight: 1.5 }}>
+                  {isHi
+                    ? "डेटाबेस से आपकी सभी शिकायतें, अपलोड की गई फोटो, और चैट संदेश स्थायी रूप से हटा दिए जाएंगे।"
+                    : "Permanently delete all your complaints, uploaded evidence photos from storage, and AI chat history."}
+                </p>
+                <button
+                  type="button"
+                  className="archiveBtn"
+                  onClick={() => setShowDeleteAllModal(true)}
+                  style={{ color: "var(--rose)", borderColor: "rgba(220, 38, 38, 0.4)", padding: "8px 14px", fontSize: "12px" }}
+                >
+                  <Trash2 size={13} />
+                  <span>{isHi ? "समस्त डेटा हटाएं" : "Delete All My Data"}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
             <button
@@ -249,6 +280,26 @@ export function SettingsModal({
             </button>
           </div>
         </form>
+
+        {/* Delete All Data Confirmation Modal requiring typing DELETE */}
+        {showDeleteAllModal && (
+          <DeleteConfirmModal
+            isOpen={showDeleteAllModal}
+            title={isHi ? "समस्त नागरिक डेटा हटाएं?" : "Purge all your citizen data?"}
+            message={
+              isHi
+                ? `यह क्रिया डेटाबेस से आपकी सभी शिकायतें, निजी स्टोरेज से फोटो और चैट इतिहास को स्थायी रूप से हटा देगी। इसे पूर्ववत नहीं किया जा सकता।`
+                : `This will permanently delete all your complaints, uploaded photos, and chat history from Supabase. This action cannot be undone.`
+            }
+            requireWord="DELETE"
+            onConfirmDelete={async () => {
+              setShowDeleteAllModal(false);
+              onClose();
+              await onDeleteAllData?.();
+            }}
+            onClose={() => setShowDeleteAllModal(false)}
+          />
+        )}
       </div>
     </div>
   );

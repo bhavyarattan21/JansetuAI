@@ -37,6 +37,7 @@ import {
 import { uploadComplaintPhoto } from "./lib/photos";
 import { syncUserProfile, saveLanguagePreference, getUserProfile } from "./lib/profile";
 import { loadDemoScenario, removeDemoData } from "./lib/demoData";
+import { clearChatHistory } from "./lib/chat";
 
 // Root JanSetu AI Application
 function App() {
@@ -109,13 +110,13 @@ function App() {
   const [complaintsLoading, setComplaintsLoading] = useState(true);
   const [complaintsError, setComplaintsError] = useState(null);
 
-  // Fetch complaints from Supabase
+  // Fetch complaints from Supabase (both active and archived for tab filtering)
   const fetchComplaints = async () => {
     if (!user?.id) return;
     setComplaintsLoading(true);
     setComplaintsError(null);
     try {
-      const data = await listComplaints();
+      const data = await listComplaints({ includeArchived: true });
       setComplaints(data);
     } catch (err) {
       console.error("Failed to load complaints from Supabase:", err);
@@ -255,31 +256,35 @@ function App() {
     try {
       showToast(lang === "हिन्दी" ? "शिकायत डेटाबेस में दर्ज हो रही है..." : "Saving complaint to Supabase...");
       
-      const created = await createComplaint({
-        category: complaintData.category,
-        department: complaintData.dept,
-        portal_name: complaintData.portalName,
-        location: complaintData.location,
-        description: complaintData.desc,
-        draft_letter: complaintData.aiDraftBody || complaintData.desc,
-        urgency: complaintData.urgency || "medium",
-        status: "filed",
-        portal_reference: complaintData.portalRefNumber,
-        expectedDays: complaintData.expectedResolutionDays || 7
-      });
+      let createdId = complaintData.dbComplaintId;
+      if (!createdId) {
+        const created = await createComplaint({
+          category: complaintData.category,
+          department: complaintData.dept,
+          portal_name: complaintData.portalName,
+          location: complaintData.location,
+          description: complaintData.desc,
+          draft_letter: complaintData.aiDraftBody || complaintData.desc,
+          urgency: complaintData.urgency || "medium",
+          status: "filed",
+          portal_reference: complaintData.portalRefNumber,
+          expectedDays: complaintData.expectedResolutionDays || 7
+        });
+        createdId = created.id;
 
-      // Upload photos to Supabase Storage if attached
-      if (rawPhotos && rawPhotos.length > 0 && user?.id) {
-        for (const photo of rawPhotos) {
-          try {
-            await uploadComplaintPhoto({
-              userId: user.id,
-              complaintId: created.id,
-              fileOrBlobOrDataUrl: photo,
-              kind: "before"
-            });
-          } catch (photoErr) {
-            console.error("Failed to upload photo to Supabase storage:", photoErr);
+        // Upload photos to Supabase Storage if attached
+        if (rawPhotos && rawPhotos.length > 0 && user?.id) {
+          for (const photo of rawPhotos) {
+            try {
+              await uploadComplaintPhoto({
+                userId: user.id,
+                complaintId: createdId,
+                fileOrBlobOrDataUrl: photo,
+                kind: "before"
+              });
+            } catch (photoErr) {
+              console.error("Failed to upload photo to Supabase storage:", photoErr);
+            }
           }
         }
       }
@@ -329,11 +334,12 @@ function App() {
     }, 1000);
   };
 
-  const handleRestoreComplaint = async () => {
+  const handleRestoreComplaint = async (targetId) => {
     if (undoTimerRef.current) clearInterval(undoTimerRef.current);
-    if (undoDelete?.complaint) {
+    const idToRestore = targetId || undoDelete?.complaint?.id;
+    if (idToRestore) {
       try {
-        await restoreComplaint(undoDelete.complaint.id);
+        await restoreComplaint(idToRestore);
         await fetchComplaints();
         showToast(lang === "हिन्दी" ? "शिकायत पुनर्स्थापित की गई!" : "Complaint restored!");
       } catch (e) {
@@ -341,6 +347,53 @@ function App() {
       }
     }
     setUndoDelete(null);
+  };
+
+  const handleDeletePermanently = async (id) => {
+    try {
+      showToast(lang === "हिन्दी" ? "डेटाबेस से स्थायी रूप से हटाया जा रहा है..." : "Deleting complaint permanently...");
+      await deletePermanently(id);
+      await fetchComplaints();
+      showToast(lang === "हिन्दी" ? "शिकायत डेटाबेस से स्थायी रूप से हटा दी गई!" : "Complaint permanently deleted from Supabase.");
+    } catch (e) {
+      console.error("Permanent delete error:", e);
+      showToast(`Delete error: ${e.message}`);
+    }
+  };
+
+  const handleRemoveDemoScenario = async () => {
+    if (!user?.id) return;
+    try {
+      showToast(lang === "हिन्दी" ? "डेमो डेटा हटाया जा रहा है..." : "Removing demo complaints...");
+      await removeDemoData(user.id);
+      await fetchComplaints();
+      showToast(lang === "हिन्दी" ? "डेमो डेटा डेटाबेस से हटा दिया गया!" : "Demo scenario records removed.");
+    } catch (e) {
+      console.error("Remove demo error:", e);
+      showToast(`Error: ${e.message}`);
+    }
+  };
+
+  const handleDeleteAllData = async () => {
+    if (!user?.id) return;
+    try {
+      showToast(lang === "हिन्दी" ? "समस्त नागरिक डेटा हटाया जा रहा है..." : "Purging citizen records...");
+      for (const c of complaints) {
+        try {
+          await deletePermanently(c.id);
+        } catch (e) {}
+      }
+      try {
+        await clearChatHistory(user.id);
+      } catch (e) {}
+      setChat([]);
+      localStorage.removeItem("jansetu_copilot_chat");
+      await fetchComplaints();
+      showToast(lang === "हिन्दी" ? "आपका समस्त डेटा हटा दिया गया।" : "All citizen records and chat history purged.");
+    } catch (err) {
+      console.error("Purge error:", err);
+      showToast(`Purge error: ${err.message}`);
+    }
   };
 
   const handleConfirmResolved = async (id, { afterPhoto, resolutionNotes }) => {
@@ -367,10 +420,24 @@ function App() {
   };
 
   const handleUserLogin = async (u) => {
-    setUser(u);
-    localStorage.setItem("jansetu_current_user", JSON.stringify(u));
-    if (user?.id) {
-      await syncUserProfile(user.id, {
+    let resolvedId = user?.id;
+    if (!resolvedId && supabase) {
+      const { data: authData } = await supabase.auth.getUser();
+      resolvedId = authData?.user?.id;
+    }
+
+    const mergedUser = {
+      ...(user || {}),
+      ...u,
+      id: resolvedId,
+      provider: "google"
+    };
+
+    setUser(mergedUser);
+    localStorage.setItem("jansetu_current_user", JSON.stringify(mergedUser));
+
+    if (resolvedId) {
+      await syncUserProfile(resolvedId, {
         full_name: u.name,
         language: lang === "हिन्दी" ? "hi" : "en"
       });
@@ -531,10 +598,15 @@ function App() {
           complaints={complaints}
           loading={complaintsLoading}
           error={complaintsError}
+          user={user}
           onRetry={fetchComplaints}
           onArchiveComplaint={handleArchiveComplaint}
+          onRestoreComplaint={handleRestoreComplaint}
+          onDeletePermanently={handleDeletePermanently}
           onDeleteWithUndo={handleDeleteWithUndo}
           onConfirmResolved={handleConfirmResolved}
+          onLoadDemo={handleLaunchDemoScenario}
+          onRemoveDemo={handleRemoveDemoScenario}
           onLodgeNew={() => {
             setPrepareInitialData(null);
             setActive("file");
@@ -656,6 +728,7 @@ function App() {
         toggleTheme={toggleTheme}
         lang={lang}
         toggleLanguage={toggleLanguage}
+        onDeleteAllData={handleDeleteAllData}
         notify={showToast}
         t={t}
       />

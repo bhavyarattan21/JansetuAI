@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   Clock, AlertTriangle, CheckCircle2, ShieldAlert, Archive,
   ExternalLink, FileText, ChevronRight, Copy, Check, Eye, Trash2,
-  AlertCircle, RotateCcw
+  AlertCircle, RotateCcw, Sparkles
 } from "lucide-react";
 import { EscalationModal } from "./EscalationModal";
 import { ResolutionModal } from "./ResolutionModal";
@@ -12,10 +12,15 @@ export function MyComplaints({
   complaints,
   loading = false,
   error = null,
+  user = null,
   onRetry,
   onArchiveComplaint,
+  onRestoreComplaint,
+  onDeletePermanently,
   onDeleteWithUndo,
   onConfirmResolved,
+  onLoadDemo,
+  onRemoveDemo,
   onLodgeNew,
   lang,
   t,
@@ -25,13 +30,21 @@ export function MyComplaints({
   const [activeEscalationComplaint, setActiveEscalationComplaint] = useState(null);
   const [activeResolutionComplaint, setActiveResolutionComplaint] = useState(null);
   const [pendingDeleteComplaint, setPendingDeleteComplaint] = useState(null);
+  const [permanentDeleteComplaint, setPermanentDeleteComplaint] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [copiedId, setCopiedId] = useState("");
 
   const isHi = lang === "हिन्दी";
 
+  const activeComplaints = (complaints || []).filter(c => !c.is_archived && !c.isArchived);
+  const archivedComplaints = (complaints || []).filter(c => c.is_archived || c.isArchived);
+  const hasDemoData = (complaints || []).some(c => c.is_demo || c.isDemo);
+
   // Filter complaints based on status
   const filteredList = (complaints || []).filter(c => {
+    if (filter === "archived") return c.is_archived || c.isArchived;
+    // Active tabs exclude archived items
+    if (c.is_archived || c.isArchived) return false;
     if (filter === "all") return true;
     if (filter === "draft") return c.status === "draft";
     if (filter === "filed") return c.status === "filed";
@@ -79,14 +92,57 @@ export function MyComplaints({
           </p>
         </div>
 
-        <button
-          type="button"
-          className="primary"
-          onClick={onLodgeNew}
-          style={{ padding: "10px 20px", fontSize: "14px", borderRadius: "10px" }}
-        >
-          + {t("navFile")}
-        </button>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+          {onLoadDemo && (
+            <button
+              type="button"
+              className="secondary"
+              onClick={onLoadDemo}
+              title="Loads 5 sample complaints into Supabase (draft, filed, overdue, escalated, resolved)"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "10px 14px",
+                fontSize: "13px",
+                borderRadius: "10px"
+              }}
+            >
+              <Sparkles size={14} color="var(--blue)" />
+              <span>{isHi ? "डेमो लोड करें" : "Load Demo Scenario"}</span>
+            </button>
+          )}
+
+          {hasDemoData && onRemoveDemo && (
+            <button
+              type="button"
+              className="archiveBtn"
+              onClick={onRemoveDemo}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "10px 14px",
+                fontSize: "13px",
+                borderRadius: "10px",
+                color: "var(--rose)",
+                borderColor: "rgba(220, 38, 38, 0.3)"
+              }}
+            >
+              <Trash2 size={13} />
+              <span>{isHi ? "डेमो हटाएं" : "Clear Demo"}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="primary"
+            onClick={onLodgeNew}
+            style={{ padding: "10px 20px", fontSize: "14px", borderRadius: "10px" }}
+          >
+            + {t("navFile")}
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -95,31 +151,39 @@ export function MyComplaints({
           className={`filterPill ${filter === "all" ? "active" : ""}`}
           onClick={() => setFilter("all")}
         >
-          {t("filterAll")} ({complaints.length})
+          {t("filterAll")} ({activeComplaints.length})
         </button>
         <button
           className={`filterPill ${filter === "filed" ? "active" : ""}`}
           onClick={() => setFilter("filed")}
         >
-          {t("filterActive")} ({complaints.filter(c => c.status === "filed").length})
+          {t("filterActive")} ({activeComplaints.filter(c => c.status === "filed").length})
         </button>
         <button
           className={`filterPill ${filter === "overdue" ? "active" : ""}`}
           onClick={() => setFilter("overdue")}
         >
-          {t("filterOverdue")} ({complaints.filter(c => c.isOverdue || c.status === "follow_up_due").length})
+          {t("filterOverdue")} ({activeComplaints.filter(c => c.isOverdue || c.status === "follow_up_due").length})
         </button>
         <button
           className={`filterPill ${filter === "escalated" ? "active" : ""}`}
           onClick={() => setFilter("escalated")}
         >
-          {t("filterEscalated")} ({complaints.filter(c => c.status === "escalated").length})
+          {t("filterEscalated")} ({activeComplaints.filter(c => c.status === "escalated").length})
         </button>
         <button
           className={`filterPill ${filter === "resolved" ? "active" : ""}`}
           onClick={() => setFilter("resolved")}
         >
-          {t("filterResolved")} ({complaints.filter(c => c.status === "resolved").length})
+          {t("filterResolved")} ({activeComplaints.filter(c => c.status === "resolved").length})
+        </button>
+        <button
+          className={`filterPill ${filter === "archived" ? "active" : ""}`}
+          onClick={() => setFilter("archived")}
+          style={{ marginLeft: "auto" }}
+        >
+          <Archive size={13} style={{ marginRight: "4px" }} />
+          {isHi ? "संग्रहीत (Archived)" : "Archived"} ({archivedComplaints.length})
         </button>
       </div>
 
@@ -365,29 +429,54 @@ export function MyComplaints({
                     </button>
                   </div>
 
-                  {/* Archive & Delete with 5s Undo */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <button
-                      type="button"
-                      className="archiveBtn"
-                      onClick={() => onArchiveComplaint(c.id)}
-                      title="Archive this record"
-                    >
-                      <Archive size={13} />
-                      <span>{t("btnArchive") || "Archive"}</span>
-                    </button>
+                  {/* Actions for Archived vs Active Records */}
+                  {(c.is_archived || c.isArchived) ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <button
+                        type="button"
+                        className="inlineCopyBtn"
+                        onClick={() => onRestoreComplaint?.(c.id)}
+                        style={{ background: "var(--blue-subtle)", color: "var(--blue)", borderColor: "var(--blue)" }}
+                      >
+                        <RotateCcw size={13} />
+                        <span>{isHi ? "पुनर्स्थापित करें" : "Restore"}</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      className="archiveBtn"
-                      onClick={() => setPendingDeleteComplaint(c)}
-                      title="Delete this record"
-                      style={{ color: "var(--rose)", borderColor: "rgba(220, 38, 38, 0.3)" }}
-                    >
-                      <Trash2 size={13} />
-                      <span>Delete</span>
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        className="archiveBtn"
+                        onClick={() => setPermanentDeleteComplaint(c)}
+                        style={{ color: "var(--rose)", borderColor: "rgba(220, 38, 38, 0.4)" }}
+                      >
+                        <Trash2 size={13} />
+                        <span>{isHi ? "स्थायी हटाएं" : "Delete Permanently"}</span>
+                      </button>
+                    </div>
+                  ) : (
+                    /* Active Record Actions: Archive & Soft Delete with 5s Undo */
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <button
+                        type="button"
+                        className="archiveBtn"
+                        onClick={() => onArchiveComplaint(c.id)}
+                        title="Archive this record"
+                      >
+                        <Archive size={13} />
+                        <span>{t("btnArchive") || "Archive"}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="archiveBtn"
+                        onClick={() => setPendingDeleteComplaint(c)}
+                        title="Delete this record"
+                        style={{ color: "var(--rose)", borderColor: "rgba(220, 38, 38, 0.3)" }}
+                      >
+                        <Trash2 size={13} />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Expanded Timeline & Evidence Details (reads complaint_events in order) */}
@@ -492,6 +581,26 @@ export function MyComplaints({
           lang={lang}
           t={t}
           notify={notify}
+        />
+      )}
+
+      {/* Permanent Delete Confirmation Modal requiring typing DELETE */}
+      {permanentDeleteComplaint && (
+        <DeleteConfirmModal
+          isOpen={!!permanentDeleteComplaint}
+          title={isHi ? "शिकायत स्थायी रूप से हटाएं?" : "Permanently delete complaint?"}
+          message={
+            isHi
+              ? `यह क्रिया डेटाबेस और निजी स्टोरेज से इस शिकायत, संलग्न फोटो और सभी ऑडिट इवेंट्स को हमेशा के लिए मिटा देगी। इसे पूर्ववत नहीं किया जा सकता।`
+              : `This will permanently purge this complaint, all uploaded evidence photos from Supabase Storage, and timeline records. This cannot be undone.`
+          }
+          requireWord="DELETE"
+          onConfirmDelete={async () => {
+            const id = permanentDeleteComplaint.id;
+            setPermanentDeleteComplaint(null);
+            await onDeletePermanently?.(id);
+          }}
+          onClose={() => setPermanentDeleteComplaint(null)}
         />
       )}
 

@@ -8,6 +8,8 @@ import { generateComplaintDraft, analyzePhotoForComplaint } from "../services/ai
 import { getPortalForCategory } from "../data/portals";
 import { LocationPickerMap, POPULAR_LOCATIONS, DEFAULT_CENTER } from "./LocationPickerMap";
 import { triggerGoogleSignIn } from "../utils/googleAuth";
+import { createComplaint, markFiled } from "../lib/complaints";
+import { uploadComplaintPhoto } from "../lib/photos";
 
 export function PrepareAndFile({
   initialData,
@@ -114,6 +116,8 @@ export function PrepareAndFile({
   // Portal Filing State
   const [portalRefInput, setPortalRefInput] = useState("");
   const [confirmedComplaint, setConfirmedComplaint] = useState(null);
+  const [dbComplaintId, setDbComplaintId] = useState(null);
+  const [isUploadingDraftPhotos, setIsUploadingDraftPhotos] = useState(false);
 
   // Sync initialData
   useEffect(() => {
@@ -188,7 +192,7 @@ export function PrepareAndFile({
     setPhotos(prev => prev.filter((_, i) => i !== idx));
   };
 
-  // Step 1 -> Step 2: Generate Draft
+  // Step 1 -> Step 2: Generate Draft and immediately insert draft record & upload photos
   const handleGenerateDraft = async (e) => {
     e.preventDefault();
     if (!description.trim()) {
@@ -209,11 +213,53 @@ export function PrepareAndFile({
       setDraft(generated);
       setEditedSubject(generated.subject);
       setEditedBody(generated.body);
+
+      // Immediately create draft record in Supabase
+      if (user?.id) {
+        try {
+          const draftRow = await createComplaint({
+            category: category === "roads" ? "Roads & Potholes" : (category === "water" ? "Water Supply" : (category === "waste" ? "Waste Management" : "Street Lighting")),
+            department: generated?.department || portalInfo.department,
+            portal_name: portalInfo.portal?.name || "Official Portal",
+            location: location || "Unspecified Location",
+            description: description,
+            draft_letter: generated?.body || description,
+            urgency: urgency,
+            status: "draft"
+          });
+
+          if (draftRow?.id) {
+            setDbComplaintId(draftRow.id);
+
+            // Upload attached photos immediately to Supabase private storage
+            if (photos.length > 0) {
+              setIsUploadingDraftPhotos(true);
+              for (const p of photos) {
+                try {
+                  await uploadComplaintPhoto({
+                    userId: user.id,
+                    complaintId: draftRow.id,
+                    fileOrBlobOrDataUrl: p,
+                    kind: "before"
+                  });
+                } catch (pe) {
+                  console.warn("Draft photo upload notice:", pe);
+                }
+              }
+              setIsUploadingDraftPhotos(false);
+            }
+          }
+        } catch (dbErr) {
+          console.warn("Draft auto-save notice:", dbErr);
+        }
+      }
+
       setStep(2);
     } catch (err) {
       console.error("Draft generation error:", err);
     } finally {
       setIsDrafting(false);
+      setIsUploadingDraftPhotos(false);
     }
   };
 
@@ -226,7 +272,7 @@ export function PrepareAndFile({
   };
 
   // Step 3: Confirm citizen has filed on portal
-  const handleConfirmFiling = () => {
+  const handleConfirmFiling = async () => {
     if (!user) {
       triggerGoogleSignIn((u) => {
         onLogin?.(u);
@@ -236,14 +282,26 @@ export function PrepareAndFile({
       return;
     }
 
+    const portalRef = portalRefInput.trim() || `PORTAL-REF-${Math.floor(100000 + Math.random() * 900000)}`;
+    const expectedDays = draft?.typicalResolutionDays || portalInfo.typicalResolutionDays || 5;
+
+    if (dbComplaintId) {
+      try {
+        await markFiled(dbComplaintId, portalRef, expectedDays);
+      } catch (err) {
+        console.warn("markFiled error:", err);
+      }
+    }
+
     const newRecord = {
-      id: `JAN-${Date.now().toString().slice(-6)}`,
+      id: dbComplaintId || `JAN-${Date.now().toString().slice(-6)}`,
+      dbComplaintId: dbComplaintId,
       isDemo: false,
       category: category === "roads" ? "Roads & Potholes" : (category === "water" ? "Water Supply" : (category === "waste" ? "Waste Management" : "Street Lighting")),
       categoryHi: category === "roads" ? "सड़क और गड्ढे" : (category === "water" ? "जल आपूर्ति" : (category === "waste" ? "कचरा प्रबंधन" : "स्ट्रीट लाइट")),
       portalId: portalInfo.portal?.id || "cpgrams",
       portalName: portalInfo.portal?.name || "Official Portal",
-      portalRefNumber: portalRefInput.trim() || `PORTAL-REF-${Math.floor(100000 + Math.random() * 900000)}`,
+      portalRefNumber: portalRef,
       dept: draft?.department || portalInfo.department,
       location: location,
       coords: coords,
@@ -251,7 +309,7 @@ export function PrepareAndFile({
       urgency: urgency,
       filingDate: new Date().toLocaleString(),
       filingTimestamp: Date.now(),
-      expectedResolutionDays: draft?.typicalResolutionDays || portalInfo.typicalResolutionDays || 5,
+      expectedResolutionDays: expectedDays,
       status: "filed",
       statusHi: "पोर्टल पर दर्ज",
       daysElapsed: 0,
@@ -270,7 +328,7 @@ export function PrepareAndFile({
         {
           title: "Marked as Filed by Citizen",
           date: new Date().toLocaleString(),
-          note: `Citizen confirmed filing with Portal Ref: ${portalRefInput.trim() || "Generated"}`,
+          note: `Citizen confirmed filing with Portal Ref: ${portalRef}`,
           actor: "Citizen"
         }
       ]

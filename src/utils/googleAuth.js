@@ -1,5 +1,6 @@
 // Real Google Cloud Console Authentication for JanSetu AI
 // Uses Google Identity Services (GSI) & Google OAuth 2.0 Token Client
+import { supabase } from "../lib/supabase";
 
 export const DEFAULT_GOOGLE_CLIENT_ID =
   "763750528919-r050jj6b5t578jdhcr4he3h6jj0qi060.apps.googleusercontent.com";
@@ -76,6 +77,23 @@ export function triggerGoogleSignIn(onSuccess, onError) {
                   accessToken: tokenResponse.access_token,
                   loginTime: new Date().toLocaleString()
                 };
+
+                // Sync directly to Supabase profiles table
+                if (supabase) {
+                  try {
+                    const { data: authData } = await supabase.auth.getUser();
+                    if (authData?.user?.id) {
+                      await supabase.from("profiles").upsert({
+                        id: authData.user.id,
+                        full_name: user.name,
+                        language: "en"
+                      });
+                    }
+                  } catch (e) {
+                    console.warn("Supabase profile sync notice:", e);
+                  }
+                }
+
                 onSuccess?.(user);
                 return;
               }

@@ -1,21 +1,13 @@
 // JanSetu AI Service Worker - Progressive Web App Support
-const CACHE_NAME = "jansetu-v3-cache";
+const CACHE_NAME = "jansetu-v10-supabase-cache";
 const APP_SHELL = [
   "/",
-  "/index.html",
   "/manifest.json",
   "/icon.svg"
 ];
 
 // Install: Cache core application shell
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(APP_SHELL).catch((err) => {
-        console.warn("PWA pre-cache warning:", err);
-      });
-    })
-  );
   self.skipWaiting();
 });
 
@@ -35,21 +27,32 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: Stale-While-Revalidate for app shell, Network-First for API
+// Fetch: Network-First for HTML and JavaScript, Cache fallback for offline icons
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Bypass API routes from offline cache
-  if (url.pathname.startsWith("/api/")) {
+  // Bypass API and Supabase routes from offline cache
+  if (url.pathname.startsWith("/api/") || url.hostname.includes("supabase.co")) {
     return;
   }
 
-  // Navigation requests: serve index.html offline fallback
-  if (event.request.mode === "navigate") {
+  // Network-first for navigation, html, and scripts so users always receive fresh builds
+  if (
+    event.request.mode === "navigate" ||
+    event.request.destination === "script" ||
+    url.pathname.endsWith(".html") ||
+    url.pathname.endsWith(".js")
+  ) {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match("/index.html") || caches.match("/");
-      })
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
@@ -58,7 +61,6 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Return cached and revalidate in background
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
@@ -68,16 +70,7 @@ self.addEventListener("fetch", (event) => {
           .catch(() => {});
         return cachedResponse;
       }
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
-        }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-        return response;
-      });
+      return fetch(event.request);
     })
   );
 });
