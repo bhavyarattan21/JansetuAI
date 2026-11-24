@@ -84,29 +84,42 @@ export function HomeHero({
   return (
     <main className="page" style={{ paddingTop: "24px" }}>
       {/* Hero Header */}
-      <div className="pageTitle" style={{ textAlign: "center", maxWidth: "800px", margin: "0 auto" }}>
+      <div className="pageTitle" style={{ textAlign: "center", maxWidth: "900px", margin: "0 auto" }}>
         <span className="kicker" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
           <Sparkles size={14} color="var(--blue)" />
-          {t("heroKicker")}
+          {t("heroBadge")}
         </span>
-        <h1 style={{ fontSize: "clamp(28px, 4.5vw, 44px)", lineHeight: 1.15, margin: "14px 0" }}>
-          {t("heroTitle")}
+        <h1 style={{ fontSize: "clamp(30px, 5vw, 48px)", lineHeight: 1.15, margin: "14px 0", letterSpacing: "-0.5px" }}>
+          {t("heroHeadline")}
         </h1>
-        <p style={{ fontSize: "16px", color: "var(--muted)", maxWidth: "660px", margin: "0 auto", lineHeight: 1.6 }}>
+        <p style={{ fontSize: "16px", color: "var(--muted)", maxWidth: "720px", margin: "0 auto", lineHeight: 1.6 }}>
           {t("heroSubtitle")}
         </p>
       </div>
 
-      {/* Front Door: Giant Search / Voice Bar */}
-      <div className="heroCoPilotBox">
+      {/* Front Door: Giant Search / Voice Bar (Fixed No-Overlap Layout) */}
+      <div className="heroCoPilotBox" style={{ maxWidth: "920px" }}>
         <form
           className="heroInputWrap"
           onSubmit={(e) => {
             e.preventDefault();
             processUserProblem();
           }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            background: "var(--panel)",
+            border: "2px solid var(--blue)",
+            borderRadius: "18px",
+            padding: "8px 10px 8px 18px",
+            boxShadow: "0 8px 30px rgba(29, 78, 216, 0.12)",
+            gap: "12px",
+            position: "relative",
+            width: "100%",
+            boxSizing: "border-box"
+          }}
         >
-          <Search size={20} className="heroSearchIcon" />
+          <Search size={22} className="heroSearchIcon" style={{ color: "var(--blue)", flexShrink: 0 }} />
           <input
             type="text"
             className="heroInputText"
@@ -114,14 +127,26 @@ export function HomeHero({
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={isAnalyzing}
+            style={{
+              flex: "1 1 0%",
+              minWidth: 0,
+              border: "none",
+              background: "transparent",
+              fontSize: "15px",
+              color: "var(--text)",
+              outline: "none",
+              padding: "8px 4px",
+              fontFamily: "inherit"
+            }}
           />
-          <div className="heroInputActions">
+          <div className="heroInputActions" style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
             {speechSupported && (
               <button
                 type="button"
                 className={`micBtn ${isListening ? "activeMic" : ""}`}
                 onClick={handleStartVoice}
                 title={isListening ? t("listeningTooltip") : t("micTooltip")}
+                style={{ width: "42px", height: "42px", flexShrink: 0 }}
               >
                 {isListening ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
@@ -130,6 +155,7 @@ export function HomeHero({
               type="submit"
               className="heroActionSubmitBtn"
               disabled={isAnalyzing || !inputText.trim()}
+              style={{ padding: "10px 20px", height: "42px", flexShrink: 0, whiteSpace: "nowrap" }}
             >
               {isAnalyzing ? (
                 <span>{t("detectingIntent")}</span>

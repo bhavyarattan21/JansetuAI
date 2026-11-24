@@ -4,6 +4,52 @@
 
 import { categoryPortalMap, getPortalForCategory } from "../data/portals";
 
+// Send message to Gemini via /api/chat with full memory & multimodal support
+export async function sendChatMessage({ message, history = [], contextItem = null, image = null, lang = "English" }) {
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, history, contextItem, image, lang })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    }
+    const errData = await res.json().catch(() => ({}));
+    return {
+      text: errData.error || (lang === "हिन्दी" ? "सेवा में त्रुटि हुई, कृपया पुनः प्रयास करें।" : "Service encountered an error, please try again."),
+      fallback: true,
+      error: true
+    };
+  } catch (err) {
+    console.warn("Client chat fetch notice:", err);
+    return {
+      text: lang === "हिन्दी"
+        ? "ऑफ़लाइन मोड: जनसेतु एआई आपके प्रश्नों के उत्तर देने हेतु स्थानीय ज्ञानकोष का उपयोग कर रहा है।"
+        : "Local mode: JanSetu AI is answering using local verified statutory guidance.",
+      fallback: true
+    };
+  }
+}
+
+// Multimodal analysis of complaint photos
+export async function analyzePhotoForComplaint(imageBase64) {
+  try {
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "analyzePhoto", image: imageBase64 })
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn("Analyze photo fallback:", e);
+  }
+  return { category: "roads", urgency: "high", summary: "Visible road / civic issue" };
+}
+
 // Structured Intent Detection
 export async function detectIntent(userText, lang = "English") {
   const text = (userText || "").toLowerCase().trim();

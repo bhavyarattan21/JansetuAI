@@ -72,6 +72,42 @@ function localJsonDbPlugin() {
           return;
         }
 
+        // Handle /api/chat locally in Vite dev server
+        if (req.url === '/api/chat' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              req.body = JSON.parse(body || '{}');
+              const { default: chatHandler } = await import('./api/chat.js');
+              await chatHandler(req, res);
+            } catch (err) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+          return;
+        }
+
+        // Handle /api/ai locally in Vite dev server
+        if (req.url === '/api/ai' && req.method === 'POST') {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', async () => {
+            try {
+              req.body = JSON.parse(body || '{}');
+              const { default: aiHandler } = await import('./api/ai.js');
+              await aiHandler(req, res);
+            } catch (err) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err.message }));
+            }
+          });
+          return;
+        }
+
         next();
       });
     }

@@ -1,0 +1,20 @@
+{
+  "name": "JanSetu AI — Prepared right. Filed fast. Followed up.",
+  "short_name": "JanSetu AI",
+  "description": "The independent civic AI copilot for Indian citizens. Prepare civic complaints in 30 seconds, verify scheme eligibility, and escalate delayed grievances.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#1D4ED8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["government", "productivity", "utilities"]
+}

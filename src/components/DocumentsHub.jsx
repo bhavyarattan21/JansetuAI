@@ -4,6 +4,57 @@ import {
 } from "lucide-react";
 import { certificatesData } from "../data/certificates";
 
+const DEPT_MONOGRAMS = {
+  income_cert: {
+    code: "REV",
+    deptName: "Revenue Dept / Tehsildar",
+    deptNameHi: "राजस्व विभाग / तहसीलदार",
+    bg: "rgba(2, 132, 199, 0.12)",
+    color: "#0284C7",
+    border: "rgba(2, 132, 199, 0.28)"
+  },
+  caste_cert: {
+    code: "SDM",
+    deptName: "Sub-Divisional Magistrate",
+    deptNameHi: "उप-मंडल मजिस्ट्रेट (SDM)",
+    bg: "rgba(124, 58, 237, 0.12)",
+    color: "#7C3AED",
+    border: "rgba(124, 58, 237, 0.28)"
+  },
+  residence_cert: {
+    code: "DM",
+    deptName: "District Administration",
+    deptNameHi: "जिला प्रशासन / तहसीलदार",
+    bg: "rgba(217, 119, 6, 0.12)",
+    color: "#D97706",
+    border: "rgba(217, 119, 6, 0.28)"
+  },
+  birth_cert: {
+    code: "CRS",
+    deptName: "Civil Registry (Municipal)",
+    deptNameHi: "जन्म-मृत्यु पंजीयक (नगर पालिका)",
+    bg: "rgba(5, 150, 105, 0.12)",
+    color: "#059669",
+    border: "rgba(5, 150, 105, 0.28)"
+  },
+  death_cert: {
+    code: "CRS",
+    deptName: "Civil Registry (Health)",
+    deptNameHi: "जन्म-मृत्यु पंजीयक (स्वास्थ्य)",
+    bg: "rgba(71, 85, 105, 0.14)",
+    color: "#475569",
+    border: "rgba(71, 85, 105, 0.28)"
+  },
+  disability_cert: {
+    code: "DMB",
+    deptName: "District Medical Board",
+    deptNameHi: "जिला मेडिकल बोर्ड / DEPwD",
+    bg: "rgba(13, 148, 136, 0.12)",
+    color: "#0D9488",
+    border: "rgba(13, 148, 136, 0.28)"
+  }
+};
+
 export function DocumentsHub({
   onAskAI,
   lang,
@@ -58,6 +109,15 @@ export function DocumentsHub({
           const isComplete = progressPercent === 100;
           const missingItems = doc.checklistItems.filter(item => !checkedItems.includes(item.id));
 
+          const mono = DEPT_MONOGRAMS[doc.id] || {
+            code: "GOV",
+            deptName: doc.dept,
+            deptNameHi: doc.deptHi,
+            bg: "var(--blue-subtle)",
+            color: "var(--blue)",
+            border: "rgba(29, 78, 216, 0.25)"
+          };
+
           return (
             <div
               key={doc.id}
@@ -70,11 +130,33 @@ export function DocumentsHub({
                 border: isComplete ? "2px solid var(--emerald)" : "1px solid var(--line)"
               }}
             >
-              {/* Badge & Title */}
+              {/* Department Monogram & Title */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "3px 8px", borderRadius: "6px", background: "var(--blue-subtle)", color: "var(--blue)", fontSize: "11px", fontWeight: 700, marginBottom: "8px" }}>
-                  <FileCheck2 size={13} />
-                  <span>{isHi ? doc.deptHi : doc.dept}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                  <div
+                    title={isHi ? mono.deptNameHi : mono.deptName}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minWidth: "40px",
+                      height: "26px",
+                      padding: "0 6px",
+                      borderRadius: "6px",
+                      background: mono.bg,
+                      color: mono.color,
+                      border: `1px solid ${mono.border}`,
+                      fontSize: "11px",
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontWeight: 800,
+                      letterSpacing: "0.5px"
+                    }}
+                  >
+                    {mono.code}
+                  </div>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--muted)" }}>
+                    {isHi ? mono.deptNameHi : mono.deptName}
+                  </span>
                 </div>
                 <h3 style={{ margin: "0 0 6px", fontSize: "18px", color: "var(--text-heading)" }}>
                   {isHi ? doc.titleHi : doc.title}
@@ -179,7 +261,7 @@ export function DocumentsHub({
                 <button
                   type="button"
                   className="inlineCopyBtn"
-                  onClick={() => onAskAI(doc.title)}
+                  onClick={() => onAskAI(doc)}
                   style={{ flex: 1, justifyContent: "center", padding: "8px 10px" }}
                 >
                   <Bot size={14} />

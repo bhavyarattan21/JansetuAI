@@ -21,14 +21,6 @@ export function Navbar({
       {/* Tricolor India Indicator */}
       <div className="tricolorBar" />
 
-      {/* Honest Top Disclaimer Strip */}
-      <div className="disclaimerTopBanner">
-        <AlertCircle size={14} color="var(--blue)" />
-        <span>
-          <strong>{t("brandTitle")}:</strong> {t("disclaimerBar")}
-        </span>
-      </div>
-
       <header className="topbar">
         {/* Brand */}
         <div className="brand" onClick={() => setActive("home")} style={{ cursor: "pointer" }}>

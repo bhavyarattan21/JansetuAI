@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import {
   Clock, AlertTriangle, CheckCircle2, ShieldAlert, Archive,
-  ExternalLink, FileText, ChevronRight, Copy, Check, Eye
+  ExternalLink, FileText, ChevronRight, Copy, Check, Eye, Trash2
 } from "lucide-react";
 import { EscalationModal } from "./EscalationModal";
 import { ResolutionModal } from "./ResolutionModal";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
 
 export function MyComplaints({
   complaints,
   onArchiveComplaint,
+  onDeleteWithUndo,
   onConfirmResolved,
   onLodgeNew,
   lang,
@@ -18,6 +20,7 @@ export function MyComplaints({
   const [filter, setFilter] = useState("all");
   const [activeEscalationComplaint, setActiveEscalationComplaint] = useState(null);
   const [activeResolutionComplaint, setActiveResolutionComplaint] = useState(null);
+  const [pendingDeleteComplaint, setPendingDeleteComplaint] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [copiedId, setCopiedId] = useState("");
 
@@ -271,16 +274,29 @@ export function MyComplaints({
                     </button>
                   </div>
 
-                  {/* Archive Button (Replaces delete trash button) */}
-                  <button
-                    type="button"
-                    className="archiveBtn"
-                    onClick={() => onArchiveComplaint(c.id)}
-                    title="Archive this record"
-                  >
-                    <Archive size={13} />
-                    <span>{t("btnArchive")}</span>
-                  </button>
+                  {/* Archive & Delete with 5s Undo */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <button
+                      type="button"
+                      className="archiveBtn"
+                      onClick={() => onArchiveComplaint(c.id)}
+                      title="Archive this record"
+                    >
+                      <Archive size={13} />
+                      <span>{t("btnArchive") || "Archive"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="archiveBtn"
+                      onClick={() => setPendingDeleteComplaint(c)}
+                      title="Delete this record"
+                      style={{ color: "var(--rose)", borderColor: "rgba(220, 38, 38, 0.3)" }}
+                    >
+                      <Trash2 size={13} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Expanded Timeline & Evidence Details */}
@@ -348,6 +364,30 @@ export function MyComplaints({
           lang={lang}
           t={t}
           notify={notify}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {pendingDeleteComplaint && (
+        <DeleteConfirmModal
+          isOpen={!!pendingDeleteComplaint}
+          title={isHi ? "शिकायत हटाएं?" : "Delete this complaint?"}
+          message={
+            isHi
+              ? `क्या आप निश्चित रूप से "${pendingDeleteComplaint.title}" को हटाना चाहते हैं? हटाने के बाद आपके पास इसे पूर्ववत (Undo) करने के लिए 5 सेकंड होंगे।`
+              : `Are you sure you want to delete "${pendingDeleteComplaint.title}"? You will have 5 seconds to undo before permanent removal.`
+          }
+          onConfirmDelete={() => {
+            const toDelete = pendingDeleteComplaint;
+            setPendingDeleteComplaint(null);
+            onDeleteWithUndo(toDelete);
+          }}
+          onArchiveInstead={() => {
+            const toArchive = pendingDeleteComplaint;
+            setPendingDeleteComplaint(null);
+            onArchiveComplaint(toArchive.id);
+          }}
+          onClose={() => setPendingDeleteComplaint(null)}
         />
       )}
     </main>

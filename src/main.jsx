@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
   X, Check, Copy, ShieldCheck, CheckCircle2, AlertCircle, LogOut,
-  User, Key, ExternalLink, Zap
+  User, Key, ExternalLink, Zap, RotateCcw
 } from "lucide-react";
 import "./styles.css";
 
@@ -17,9 +17,15 @@ import { DocumentsHub } from "./components/DocumentsHub";
 import { CivicCoPilot } from "./components/CivicCoPilot";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { EscalationModal } from "./components/EscalationModal";
+import { LoadingScreen } from "./components/LoadingScreen";
+import { LoginPage } from "./components/LoginPage";
+import { Footer } from "./components/Footer";
 
 // Root JanSetu AI Application
 function App() {
+  // Splash Loading Screen (850ms sequence)
+  const [loading, setLoading] = useState(true);
+
   // Theme state: Defaults to LIGHT mode for maximum civic clarity & hackathon presentation
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("jansetu_theme") || "light";
@@ -60,12 +66,26 @@ function App() {
   // Active Demo Scenario modal trigger
   const [demoEscalationModal, setDemoEscalationModal] = useState(null);
 
+  // Co-Pilot Chat Context (when opened from specific scheme or document card)
+  const [chatContext, setChatContext] = useState(null);
+
+  // Persistent Co-Pilot Chat History
+  const [chat, setChat] = useState(() => {
+    try {
+      const saved = localStorage.getItem("jansetu_copilot_chat");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // 5-Second Soft Delete Undo State
+  const [undoDelete, setUndoDelete] = useState(null);
+  const undoTimerRef = useRef(null);
+
   // UI Modals & Toasts
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [credentialsModalOpen, setCredentialsModalOpen] = useState(false);
   const [toast, setToast] = useState("");
-  const [chat, setChat] = useState([]);
-  const [chatMessage, setChatMessage] = useState("");
 
   // Persist Theme changes to DOM & localStorage
   useEffect(() => {
@@ -110,6 +130,13 @@ function App() {
     }
   }, [complaints]);
 
+  // Persist Co-Pilot Chat
+  useEffect(() => {
+    try {
+      localStorage.setItem("jansetu_copilot_chat", JSON.stringify(chat));
+    } catch (e) {}
+  }, [chat]);
+
   // Translation helper
   const t = (key) => {
     return translations[lang]?.[key] || translations["English"]?.[key] || key;
@@ -148,7 +175,37 @@ function App() {
 
   const handleArchiveComplaint = (id) => {
     setComplaints((prev) => prev.filter((c) => c.id !== id));
-    showToast(t("archivedSuccess"));
+    showToast(t("archivedSuccess") || "Complaint archived.");
+  };
+
+  // Soft Delete with 5-Second Undo Toast
+  const handleDeleteWithUndo = (complaint) => {
+    setComplaints((prev) => prev.filter((c) => c.id !== complaint.id));
+
+    if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+
+    let timeLeft = 5;
+    setUndoDelete({ complaint, timeLeft });
+
+    undoTimerRef.current = setInterval(() => {
+      timeLeft -= 1;
+      if (timeLeft <= 0) {
+        clearInterval(undoTimerRef.current);
+        setUndoDelete(null);
+        showToast(lang === "हिन्दी" ? "शिकायत स्थायी रूप से हटा दी गई।" : "Complaint deleted.");
+      } else {
+        setUndoDelete((prev) => (prev ? { ...prev, timeLeft } : null));
+      }
+    }, 1000);
+  };
+
+  const handleRestoreComplaint = () => {
+    if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    if (undoDelete?.complaint) {
+      setComplaints((prev) => [undoDelete.complaint, ...prev]);
+      showToast(lang === "हिन्दी" ? "शिकायत पुनर्स्थापित की गई!" : "Complaint restored!");
+    }
+    setUndoDelete(null);
   };
 
   const handleConfirmResolved = (id, { afterPhoto, resolutionNotes }) => {
@@ -177,40 +234,51 @@ function App() {
     );
   };
 
-  // Send message in Civic Co-Pilot
-  const handleSendMessage = (customText) => {
-    const textToSend = customText || chatMessage;
-    if (!textToSend.trim()) return;
+  // 1. Initial Loading Screen
+  if (loading) {
+    return <LoadingScreen onFinish={() => setLoading(false)} minDuration={850} />;
+  }
 
-    const userMsg = { role: "user", text: textToSend };
-    setChat((prev) => [...prev, userMsg]);
-    setChatMessage("");
+  // 2. Authentication Gate: If not logged in, show LoginPage
+  if (!user) {
+    return (
+      <div className="app">
+        {toast && (
+          <div style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "var(--text-heading)",
+            color: "var(--bg)",
+            padding: "12px 20px",
+            borderRadius: "10px",
+            fontSize: "13px",
+            fontWeight: 600,
+            boxShadow: "var(--shadow-lg)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
+          }}>
+            <CheckCircle2 size={16} color="var(--emerald)" />
+            <span>{toast}</span>
+          </div>
+        )}
+        <LoginPage
+          onLogin={(u) => {
+            setUser(u);
+            localStorage.setItem("jansetu_current_user", JSON.stringify(u));
+            showToast(lang === "हिन्दी" ? `नमस्ते, ${u.name}!` : `Welcome, ${u.name}!`);
+          }}
+          lang={lang}
+          t={t}
+          notify={showToast}
+        />
+      </div>
+    );
+  }
 
-    // Conversational civic response
-    setTimeout(() => {
-      let reply = "";
-      const lower = textToSend.toLowerCase();
-      if (lower.includes("pothole") || lower.includes("road") || lower.includes("सड़क") || lower.includes("गड्ढा")) {
-        reply = lang === "हिन्दी"
-          ? "सड़क और गड्ढों के लिए लोक निर्माण विभाग (PWD) या नगर निगम उत्तरदायी है। जनसेतु के 'शिकायत तैयार करें' टैब में जाकर आप 30 सेकंड में औपचारिक पत्र तैयार कर सकते हैं।"
-          : "For road hazards and potholes, jurisdiction lies with the PWD or Municipal Road Division. Use the 'Prepare & File' tab to generate a statutory notice with photo evidence in 30 seconds.";
-      } else if (lower.includes("kisan") || lower.includes("scheme") || lower.includes("किसान")) {
-        reply = lang === "हिन्दी"
-          ? "पीएम-किसान योजना के तहत पात्र किसानों को ₹6,000/वर्ष (₹2,000 की 3 किस्तों में) डीबीटी से मिलते हैं। अधिक विवरण हेतु 'योजना खोजक' टैब देखें।"
-          : "Under PM-KISAN, eligible landholding farmers receive ₹6,000 annually via Direct Benefit Transfer. Explore your eligibility on our Scheme Finder tab.";
-      } else if (lower.includes("income") || lower.includes("certificate") || lower.includes("आय प्रमाण")) {
-        reply = lang === "हिन्दी"
-          ? "आय प्रमाण पत्र तहसीलदार कार्यालय द्वारा जारी किया जाता है। इसके लिए आधार कार्ड, पटवारी रिपोर्ट और आय स्व-घोषणा पत्र आवश्यक हैं। 'दस्तावेज़ चेकलिस्ट' टैब में अपनी तैयारी जांचें।"
-          : "Income Certificates are issued by the Tehsildar office. You need Aadhaar, Patwari verification report, and an income affidavit. Check your readiness on the Documents tab.";
-      } else {
-        reply = lang === "हिन्दी"
-          ? "जनसेतु एआई आपके सवाल का विश्लेषण कर रहा है। आप संबंधित श्रेणी चुनकर शिकायत दर्ज कर सकते हैं या योजनाओं की जांच कर सकते हैं।"
-          : "JanSetu AI is ready to guide you. You can prepare a formal complaint in 30 seconds or test your eligibility across 25+ central welfare schemes.";
-      }
-      setChat((prev) => [...prev, { role: "assistant", text: reply }]);
-    }, 600);
-  };
-
+  // 3. Main Portal View
   return (
     <div className="app">
       {/* Toast Notification Banner */}
@@ -234,6 +302,53 @@ function App() {
         }}>
           <CheckCircle2 size={16} color="var(--emerald)" />
           <span>{toast}</span>
+        </div>
+      )}
+
+      {/* 5-Second Soft Delete Undo Banner */}
+      {undoDelete && (
+        <div style={{
+          position: "fixed",
+          bottom: "76px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: "#0F172A",
+          color: "#FFFFFF",
+          padding: "12px 22px",
+          borderRadius: "12px",
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          boxShadow: "0 12px 32px rgba(0,0,0,0.35)",
+          zIndex: 10001,
+          fontSize: "13px",
+          border: "1px solid rgba(255,255,255,0.18)"
+        }}>
+          <span>
+            {lang === "हिन्दी"
+              ? `शिकायत हटाई गई (${undoDelete.timeLeft}s)`
+              : `Complaint deleted (${undoDelete.timeLeft}s)`}
+          </span>
+          <button
+            type="button"
+            onClick={handleRestoreComplaint}
+            style={{
+              background: "var(--blue)",
+              color: "#FFFFFF",
+              border: "none",
+              padding: "5px 12px",
+              borderRadius: "6px",
+              fontWeight: 700,
+              cursor: "pointer",
+              fontSize: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px"
+            }}
+          >
+            <RotateCcw size={13} />
+            <span>{lang === "हिन्दी" ? "पूर्ववत (Undo)" : "Undo"}</span>
+          </button>
         </div>
       )}
 
@@ -277,6 +392,7 @@ function App() {
         <MyComplaints
           complaints={complaints}
           onArchiveComplaint={handleArchiveComplaint}
+          onDeleteWithUndo={handleDeleteWithUndo}
           onConfirmResolved={handleConfirmResolved}
           onLodgeNew={() => {
             setPrepareInitialData(null);
@@ -291,6 +407,16 @@ function App() {
       {active === "schemes" && (
         <SchemeFinder
           onNavigateToDocs={() => setActive("documents")}
+          onAskAI={(scheme) => {
+            setChatContext({
+              type: "scheme",
+              title: scheme.title,
+              ministry: scheme.ministry,
+              benefit: scheme.benefit,
+              eligibilityCriteria: scheme.eligibilityCriteria
+            });
+            setActive("help");
+          }}
           lang={lang}
           t={t}
           notify={showToast}
@@ -299,11 +425,17 @@ function App() {
 
       {active === "documents" && (
         <DocumentsHub
-          onAskAI={(certTitle) => {
+          onAskAI={(doc) => {
+            setChatContext({
+              type: "certificate",
+              title: doc.title,
+              titleHi: doc.titleHi,
+              dept: doc.dept,
+              fee: doc.fee,
+              sla: doc.sla,
+              checklistItems: doc.checklistItems
+            });
             setActive("help");
-            const q = lang === "हिन्दी" ? `${certTitle} के बारे में मुझे विस्तृत जानकारी चाहिए।` : `Tell me about the requirements and application process for ${certTitle}.`;
-            setChatMessage(q);
-            handleSendMessage(q);
           }}
           lang={lang}
           t={t}
@@ -314,14 +446,26 @@ function App() {
       {active === "help" && (
         <CivicCoPilot
           chat={chat}
-          message={chatMessage}
-          setMessage={setChatMessage}
-          sendMessage={handleSendMessage}
-          onAction={(act) => setActive(act)}
+          setChat={setChat}
+          contextItem={chatContext}
+          onClearContext={() => setChatContext(null)}
+          onRouteWithComplaint={(draftData) => {
+            setPrepareInitialData(draftData);
+            setActive("file");
+          }}
           lang={lang}
           t={t}
+          notify={showToast}
         />
       )}
+
+      {/* Multi-Column Honest Institutional Footer */}
+      <Footer
+        setActive={setActive}
+        toggleLanguage={toggleLanguage}
+        lang={lang}
+        t={t}
+      />
 
       {/* Mobile-first bottom navigation bar */}
       <MobileBottomNav
@@ -342,7 +486,7 @@ function App() {
         />
       )}
 
-      {/* Simple Citizen Auth & Profile Modal */}
+      {/* Citizen Auth & Profile Modal */}
       {authModalOpen && (
         <AuthModal
           user={user}
@@ -367,7 +511,7 @@ function App() {
   );
 }
 
-// Clean, honest Auth Modal (Google OAuth & Guest Citizen Session)
+// Clean, honest Auth Modal (Profile & Sign Out)
 function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
   const [guestName, setGuestName] = useState("");
   const isHi = lang === "हिन्दी";
@@ -399,11 +543,19 @@ function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px", background: "var(--panel2)", borderRadius: "12px", marginBottom: "20px" }}>
               <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "var(--blue)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: "18px" }}>
-                {user.name ? user.name[0].toUpperCase() : "C"}
+                {user.picture ? (
+                  <img src={user.picture} alt={user.name} style={{ width: "100%", height: "100%", borderRadius: "50%" }} />
+                ) : (
+                  user.name ? user.name[0].toUpperCase() : "C"
+                )}
               </div>
-              <div>
-                <strong style={{ fontSize: "15px", color: "var(--text-heading)" }}>{user.name}</strong>
-                <span style={{ display: "block", fontSize: "12px", color: "var(--muted)" }}>{user.email}</span>
+              <div style={{ overflow: "hidden" }}>
+                <strong style={{ fontSize: "15px", color: "var(--text-heading)", display: "block", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                  {user.name}
+                </strong>
+                <span style={{ display: "block", fontSize: "12px", color: "var(--muted)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                  {user.email || "Verified Citizen"}
+                </span>
               </div>
             </div>
 

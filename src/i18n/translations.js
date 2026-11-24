@@ -57,7 +57,9 @@ export const translations = {
     navHelp: "Civic Co-Pilot",
 
     // Hero Section
-    heroKicker: "CIVIC ASSISTANCE COPILOT",
+    heroBadge: "AI guide for civic complaints, schemes & certificates",
+    heroHeadline: "Prepared right. Filed fast. Followed up.",
+    heroKicker: "AI GUIDE FOR CIVIC COMPLAINTS, SCHEMES & CERTIFICATES",
     heroTitle: "Tell us your problem in your own words.",
     heroSubtitle: "Describe any civic issue in English or Hindi. We detect the right department, prepare a formal complaint in 30 seconds, and give you an escalation pack if it gets delayed.",
     heroInputPlaceholder: "e.g., Street light has been non-functional in my lane for a week, or I want to know if I qualify for PM-KISAN...",
@@ -292,6 +294,8 @@ export const translations = {
     navHelp: "सिविक को-पायलट",
 
     // Hero Section
+    heroBadge: "शिकायत, योजनाएँ और प्रमाणपत्र: आपका AI मार्गदर्शक",
+    heroHeadline: "सटीक तैयारी। त्वरित दर्ज। निरंतर फॉलो-अप।",
     heroKicker: "नागरिक सहायता को-पायलट",
     heroTitle: "अपनी समस्या अपने शब्दों में बताएं।",
     heroSubtitle: "हिंदी या अंग्रेजी में बोलें या लिखें। हम 30 सेकंड में सही विभाग के लिए औपचारिक शिकायत तैयार करेंगे और विलंब होने पर आरटीआई उपलब्ध कराएंगे।",
