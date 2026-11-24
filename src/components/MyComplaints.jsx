@@ -235,6 +235,56 @@ export function MyComplaints({
                   </div>
                 </div>
 
+                {/* Real-time Lifecycle Stage & Department Update */}
+                <div style={{
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: isOverdue && c.status !== "resolved" ? "rgba(239, 68, 68, 0.08)" : "var(--panel2)",
+                  border: isOverdue && c.status !== "resolved" ? "1px solid rgba(239, 68, 68, 0.25)" : "1px solid var(--line)",
+                  marginBottom: "16px"
+                }}>
+                  {/* Step status header */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: c.status === "resolved" ? "var(--emerald)" : (isOverdue ? "var(--rose)" : "var(--blue)")
+                      }} />
+                      <strong style={{ fontSize: "13px", color: "var(--text-heading)" }}>
+                        {c.status === "resolved"
+                          ? (isHi ? "चरण 4: पूर्ण समाधान एवं नागरिक सत्यापन" : "Stage 4: Resolved & Verified on Site")
+                          : c.status === "escalated"
+                          ? (isHi ? "चरण 4: आरटीआई व प्रथम अपील प्रेषित" : "Stage 4: First Appellate RTI Escalation Filed")
+                          : isOverdue
+                          ? (isHi ? "चरण 3: समय सीमा समाप्त — आरटीआई अपील अपेक्षित" : "Stage 3: SLA Overdue — RTI Escalation Recommended")
+                          : (isHi ? "चरण 2: विभागीय समीक्षा एवं नोडल आवंटन जारी" : "Stage 2: Official Desk Review in Progress")}
+                      </strong>
+                    </div>
+
+                    <div style={{ fontSize: "12px", color: isOverdue && c.status !== "resolved" ? "var(--rose)" : "var(--blue)", fontWeight: 600 }}>
+                      {c.status === "resolved"
+                        ? "Resolved"
+                        : isOverdue
+                        ? `${Math.max(1, (c.daysElapsed || 0) - (c.expectedResolutionDays || 7))} days overdue`
+                        : `${Math.max(1, (c.expectedResolutionDays || 7) - (c.daysElapsed || 0))} working days remaining`}
+                    </div>
+                  </div>
+
+                  {/* Government Action Note */}
+                  <p style={{ margin: 0, fontSize: "12px", color: "var(--muted)", lineHeight: 1.5 }}>
+                    <strong style={{ color: "var(--text)" }}>{isHi ? "सरकारी अद्यतन (Govt Update): " : "Government Update: "}</strong>
+                    {c.status === "resolved"
+                      ? (isHi ? "स्थल पर सुधार कार्य पूर्ण कर एक्शन टेकन रिपोर्ट (ATR) दर्ज की गई।" : "Work completed on site. Photographic evidence verified and Action Taken Report (ATR) closed.")
+                      : c.status === "escalated"
+                      ? (isHi ? "विभागीय देरी के कारण प्रथम अपीलीय अधिकारी (FAA) को धारा 19(1) के तहत अपील भेजी गई।" : "Due to SLA default, First Appeal & Section 6(1) RTI dossier transmitted to First Appellate Authority.")
+                      : isOverdue
+                      ? (isHi ? `सिटीजन चार्टर की ${c.expectedResolutionDays} दिनों की समय सीमा समाप्त हो चुकी है। जनसेतु एआई के माध्यम से आरटीआई अपील दर्ज करने की अनुशंसा की जाती है।` : `The ${c.expectedResolutionDays}-day resolution SLA has elapsed without official portal closure. RTI Appeal recommended.`)
+                      : (isHi ? `शिकायत फ़ाइल ${c.dept} के क्षेत्राधिकार में जांचाधीन है। नोडल टीम द्वारा फील्ड सत्यापन किया जा रहा है।` : `Grievance dossier is under active desk review at ${c.dept}. Field inspection and work requisition underway.`)}
+                  </p>
+                </div>
+
                 {/* Action Buttons */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>

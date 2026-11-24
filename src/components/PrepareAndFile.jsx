@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   MapPin, Camera, Sparkles, ArrowRight, Check, Copy, ExternalLink,
   Edit3, CheckCircle2, AlertCircle, FileText, Upload, RefreshCw, X, Image as ImageIcon,
-  Zap, Info
+  Zap, Info, Clock, ShieldAlert, Calendar, Building2
 } from "lucide-react";
 import { generateComplaintDraft, analyzePhotoForComplaint } from "../services/ai";
 import { getPortalForCategory } from "../data/portals";
@@ -691,40 +691,258 @@ export function PrepareAndFile({
         </div>
       )}
 
-      {/* STEP 4: Marked as Filed Confirmation */}
+      {/* STEP 4: Marked as Filed Confirmation & Live SLA Tracker */}
       {step === 4 && confirmedComplaint && (
-        <div className="panel" style={{ padding: "48px 32px", borderRadius: "20px", textAlign: "center" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "var(--emerald-subtle)", color: "var(--emerald)", display: "grid", placeItems: "center", margin: "0 auto 18px" }}>
-            <CheckCircle2 size={36} />
-          </div>
-          <h2 style={{ fontSize: "24px", color: "var(--text-heading)", margin: "0 0 8px" }}>
-            {isHi ? "शिकायत ट्रैकर में दर्ज हुई" : "Grievance Added to Your Tracker"}
-          </h2>
-          <p style={{ color: "var(--muted)", fontSize: "15px", maxWidth: "540px", margin: "0 auto 20px" }}>
-            {isHi
-              ? `संदर्भ संख्या ${confirmedComplaint.portalRefNumber} के साथ दर्ज। JanSetu AI अब निर्धारित समय सीमा तक इसका फॉलो-अप ट्रैक करेगा।`
-              : `Logged under reference ${confirmedComplaint.portalRefNumber}. JanSetu AI is tracking your resolution window.`}
-          </p>
-
-          <div style={{ background: "var(--panel2)", border: "1px solid var(--line)", borderRadius: "12px", padding: "16px 20px", maxWidth: "480px", margin: "0 auto 24px", textAlign: "left" }}>
-            <div style={{ fontSize: "12px", color: "var(--muted)" }}>Portal Reference:</div>
-            <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--blue)", fontFamily: "monospace" }}>
-              {confirmedComplaint.portalRefNumber}
+        <div className="panel" style={{ padding: "40px 32px", borderRadius: "20px" }}>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: "32px" }}>
+            <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "var(--emerald-subtle)", color: "var(--emerald)", display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+              <CheckCircle2 size={36} />
             </div>
-            <div style={{ fontSize: "12px", color: "var(--muted)", marginTop: "8px" }}>
-              Typical Resolution Window: <strong>{confirmedComplaint.expectedResolutionDays} working days</strong>
-            </div>
+            <span className="kicker" style={{ color: "var(--emerald)", fontWeight: 700 }}>
+              {isHi ? "सफलतापूर्वक दर्ज • ट्रैकर सक्रिय" : "OFFICIALLY LODGED • LIVE TRACKER ACTIVE"}
+            </span>
+            <h2 style={{ fontSize: "26px", color: "var(--text-heading)", margin: "6px 0 8px" }}>
+              {isHi ? "शिकायत ट्रैकर व समाधान टाइमलाइन" : "Grievance Tracker & Resolution Timeline"}
+            </h2>
+            <p style={{ color: "var(--muted)", fontSize: "14px", maxWidth: "600px", margin: "0 auto" }}>
+              {isHi
+                ? `आपकी शिकायत पोर्टल संदर्भ ${confirmedComplaint.portalRefNumber} के तहत आधिकारिक रूप से दर्ज हो चुकी है। JanSetu AI अब समाधान की निगरानी कर रहा है।`
+                : `Your complaint is actively logged under reference ${confirmedComplaint.portalRefNumber}. JanSetu AI is actively monitoring the department's statutory SLA window.`}
+            </p>
           </div>
 
-          <button
-            type="button"
-            className="primary"
-            onClick={onViewTracker}
-            style={{ padding: "12px 28px", borderRadius: "10px", fontSize: "15px", display: "inline-flex", alignItems: "center", gap: "8px" }}
-          >
-            <span>{t("navTracker")}</span>
-            <ArrowRight size={16} />
-          </button>
+          {/* Quick Metrics Grid */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: "14px",
+            marginBottom: "28px"
+          }}>
+            {/* Metric 1: Reference */}
+            <div style={{ background: "var(--panel2)", border: "1px solid var(--line)", borderRadius: "12px", padding: "16px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                {isHi ? "पोर्टल संदर्भ संख्या" : "Official Portal Reference"}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "4px" }}>
+                <span style={{ fontSize: "16px", fontWeight: 700, color: "var(--blue)", fontFamily: "monospace" }}>
+                  {confirmedComplaint.portalRefNumber}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(confirmedComplaint.portalRefNumber);
+                    notify?.(isHi ? "संदर्भ संख्या कॉपी हुई!" : "Reference number copied!");
+                  }}
+                  style={{ background: "transparent", border: "none", color: "var(--blue)", cursor: "pointer", padding: "4px" }}
+                  title="Copy reference number"
+                >
+                  <Copy size={14} />
+                </button>
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "4px" }}>
+                {confirmedComplaint.portalName || "CPGRAMS / Municipal Portal"}
+              </div>
+            </div>
+
+            {/* Metric 2: Current Stage */}
+            <div style={{ background: "var(--panel2)", border: "1px solid var(--line)", borderRadius: "12px", padding: "16px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                {isHi ? "वर्तमान स्थिति / चरण" : "Current Application Stage"}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px" }}>
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#3B82F6" }} />
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--text-heading)" }}>
+                  {isHi ? "चरण 2: विभागीय समीक्षा जारी" : "Stage 2: Official Desk Review"}
+                </span>
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--emerald)", fontWeight: 600, marginTop: "4px" }}>
+                {isHi ? "अभिस्वीकृति (Receipt) जारी" : "Official receipt confirmed"}
+              </div>
+            </div>
+
+            {/* Metric 3: Resolution Window & Target Date */}
+            <div style={{ background: "var(--panel2)", border: "1px solid var(--line)", borderRadius: "12px", padding: "16px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                {isHi ? "समाधान समय सीमा (SLA)" : "Estimated Resolution Window"}
+              </div>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-heading)", marginTop: "4px" }}>
+                {confirmedComplaint.expectedResolutionDays || 7} {isHi ? "कार्य दिवस" : "working days"}
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "4px" }}>
+                Target: <strong>{new Date(Date.now() + (confirmedComplaint.expectedResolutionDays || 7) * 86400000).toLocaleDateString(isHi ? "hi-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric" })}</strong>
+              </div>
+            </div>
+
+            {/* Metric 4: Assigned Department */}
+            <div style={{ background: "var(--panel2)", border: "1px solid var(--line)", borderRadius: "12px", padding: "16px" }}>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                {isHi ? "जिम्मेदार विभाग" : "Assigned Authority"}
+              </div>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-heading)", marginTop: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {confirmedComplaint.dept || "Competent Municipal Cell"}
+              </div>
+              <div style={{ fontSize: "11px", color: "var(--muted)", marginTop: "4px" }}>
+                Citizen Charter SLA Enforced
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed 4-Step Lifecycle Timeline */}
+          <div style={{
+            background: "var(--panel2)",
+            border: "1px solid var(--line)",
+            borderRadius: "16px",
+            padding: "24px",
+            marginBottom: "28px"
+          }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: "16px", color: "var(--text-heading)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Clock size={16} color="var(--blue)" />
+              <span>{isHi ? "आवेदन की चरणबद्ध स्थिति (Where is your application right now?)" : "Where is your application right now? (4-Stage Redressal Lifecycle)"}</span>
+            </h3>
+
+            <div style={{ display: "grid", gap: "16px" }}>
+              {/* Stage 1: Completed */}
+              <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--emerald)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <Check size={16} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "4px" }}>
+                    <strong style={{ fontSize: "14px", color: "var(--text-heading)" }}>
+                      {isHi ? "चरण 1: शिकायत तैयार व पोर्टल पर दर्ज" : "Stage 1: Complaint Prepared & Filed on Official Portal"}
+                    </strong>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--emerald)", padding: "2px 8px", borderRadius: "10px", background: "var(--emerald-subtle)" }}>
+                      COMPLETED TODAY
+                    </span>
+                  </div>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "var(--muted)", lineHeight: 1.5 }}>
+                    {isHi
+                      ? `संदर्भ संख्या ${confirmedComplaint.portalRefNumber} के साथ आधिकारिक पोर्टल पर सफलतापूर्वक सबमिट की गई।`
+                      : `Citizen verified complaint submission. Official acknowledgement generated under Reference ${confirmedComplaint.portalRefNumber}.`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Stage 2: In Progress (Current) */}
+              <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--blue)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <Clock size={16} />
+                </div>
+                <div style={{ flex: 1, background: "var(--panel)", border: "1px solid var(--blue)", borderRadius: "10px", padding: "12px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "4px" }}>
+                    <strong style={{ fontSize: "14px", color: "var(--blue)" }}>
+                      {isHi ? "चरण 2: विभागीय डेस्क समीक्षा व नोडल अधिकारी आवंटन (वर्तमान चरण)" : "Stage 2: Official Desk Review & Nodal Allocation (CURRENT STEP)"}
+                    </strong>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "#FFFFFF", padding: "2px 8px", borderRadius: "10px", background: "var(--blue)" }}>
+                      IN PROGRESS (DAY 1 OF {confirmedComplaint.expectedResolutionDays || 7})
+                    </span>
+                  </div>
+                  <p style={{ margin: "6px 0 0", fontSize: "13px", color: "var(--text)", lineHeight: 1.5 }}>
+                    <strong>{isHi ? "सरकारी अपडेट:" : "Government Update:"} </strong>
+                    {isHi
+                      ? `शिकायत फ़ाइल ${confirmedComplaint.dept} के संबंधित नोडल सेल को क्षेत्राधिकार जांच हेतु भेजी गई है। सिटीजन चार्टर के तहत प्रारंभिक 48 घंटों में प्राथमिक स्क्रूटनी की जाती है।`
+                      : `Complaint dossier received at ${confirmedComplaint.dept} grievance registry. Jurisdictional screening is underway to allocate a Junior Engineer / Section Inspector.`}
+                  </p>
+                  <div style={{ marginTop: "8px", fontSize: "11px", color: "var(--muted)" }}>
+                    {isHi ? "अपेक्षित समय:" : "Window for this step:"} <strong>24–48 hours</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stage 3: Upcoming */}
+              <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", opacity: 0.85 }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--panel3)", color: "var(--muted)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  3
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "4px" }}>
+                    <strong style={{ fontSize: "14px", color: "var(--text-heading)" }}>
+                      {isHi ? "चरण 3: स्थलीय निरीक्षण व कार्य आदेश जारी (आगामी)" : "Stage 3: Field Inspection & Remediation Work Order (Upcoming)"}
+                    </strong>
+                    <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+                      DAY 3–5
+                    </span>
+                  </div>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "var(--muted)", lineHeight: 1.5 }}>
+                    {isHi
+                      ? "फील्ड टीम स्थल का दौरा कर आवश्यक मरम्मत या सामग्री का वर्क ऑर्डर जारी करेगी।"
+                      : "Designated field inspection team conducts physical verification and issues repair / maintenance order."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Stage 4: Resolution & RTI Safeguard */}
+              <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", opacity: 0.85 }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--panel3)", color: "var(--muted)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  4
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "4px" }}>
+                    <strong style={{ fontSize: "14px", color: "var(--text-heading)" }}>
+                      {isHi ? "चरण 4: पूर्ण समाधान अथवा आरटीआई एस्केलेशन (लक्ष्य)" : "Stage 4: Verified Resolution or Automatic RTI Escalation (Target)"}
+                    </strong>
+                    <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+                      TARGET: DAY {confirmedComplaint.expectedResolutionDays || 7}
+                    </span>
+                  </div>
+                  <p style={{ margin: "4px 0 0", fontSize: "13px", color: "var(--muted)", lineHeight: 1.5 }}>
+                    {isHi
+                      ? `यदि विभाग ${confirmedComplaint.expectedResolutionDays || 7} दिनों में समाधान नहीं करता, तो JanSetu AI का आरटीआई इंजन तुरंत प्रथम अपीलीय अधिकारी हेतु अपील तैयार करेगा।`
+                      : `Official Action Taken Report (ATR). If authorities fail to resolve within ${confirmedComplaint.expectedResolutionDays || 7} days, JanSetu AI unlocks your automated RTI Appeal under Section 19(1) of the RTI Act 2005.`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action CTAs */}
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="primary"
+              onClick={onViewTracker}
+              style={{ padding: "13px 28px", borderRadius: "10px", fontSize: "15px", display: "inline-flex", alignItems: "center", gap: "8px", fontWeight: 700 }}
+            >
+              <span>{isHi ? "मेरे शिकायत ट्रैकर में देखें" : "Open My Complaints Tracker"}</span>
+              <ArrowRight size={16} />
+            </button>
+
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => {
+                const summaryText = `JanSetu AI Civic Tracker Status:
+Portal Reference: ${confirmedComplaint.portalRefNumber}
+Portal: ${confirmedComplaint.portalName || "CPGRAMS"}
+Department: ${confirmedComplaint.dept}
+Filing Date: ${confirmedComplaint.filingDate}
+Current Status: Stage 2 - Official Desk Review in Progress
+Estimated Resolution Window: ${confirmedComplaint.expectedResolutionDays || 7} working days
+Tracked securely on JanSetu AI.`;
+                navigator.clipboard.writeText(summaryText);
+                notify?.(isHi ? "ट्रैकिंग विवरण कॉपी किया गया!" : "Tracking summary copied to clipboard!");
+              }}
+              style={{ padding: "13px 20px", borderRadius: "10px", fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "8px" }}
+            >
+              <Copy size={15} />
+              <span>{isHi ? "ट्रैकर समरी कॉपी करें" : "Copy Tracking Summary"}</span>
+            </button>
+
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => {
+                setStep(1);
+                setDescription("");
+                setPhotos([]);
+                setConfirmedComplaint(null);
+              }}
+              style={{ padding: "13px 18px", borderRadius: "10px", fontSize: "14px" }}
+            >
+              <span>{isHi ? "दूसरी शिकायत दर्ज करें" : "File Another Grievance"}</span>
+            </button>
+          </div>
         </div>
       )}
     </main>

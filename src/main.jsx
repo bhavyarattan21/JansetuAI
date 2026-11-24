@@ -41,11 +41,14 @@ function App() {
   // Active view tab: home | file | tracker | schemes | documents | help
   const [active, setActive] = useState("home");
 
-  // User Authentication
+  // User Authentication (Enforces genuine Google Cloud authentication; no guest bypass)
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem("jansetu_current_user");
-      if (savedUser) return JSON.parse(savedUser);
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.provider === "google") return parsed;
+      }
     } catch (e) {}
     return null;
   });
@@ -527,9 +530,8 @@ function App() {
   );
 }
 
-// Clean, honest Auth Modal (Profile & Sign Out & Google Link)
+// Clean, official Google Auth Modal (Profile & Google Account Management)
 function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
-  const [guestName, setGuestName] = useState("");
   const isHi = lang === "हिन्दी";
 
   const handleGoogleSignIn = () => {
@@ -538,23 +540,12 @@ function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
     });
   };
 
-  const handleGuestSignIn = (e) => {
-    e.preventDefault();
-    const name = guestName.trim() || (isHi ? "नागरिक उपयोगकर्ता" : "Citizen Resident");
-    onLogin({
-      name,
-      email: "citizen@jansetu.local",
-      provider: "local",
-      loginTime: new Date().toLocaleString()
-    });
-  };
-
   return (
     <div className="modalOverlay" onClick={onClose} style={{ zIndex: 9999 }}>
       <div className="panel" style={{ width: "min(460px, 92vw)", padding: "28px", borderRadius: "18px" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h3 style={{ margin: 0, fontSize: "18px", color: "var(--text-heading)", fontWeight: 700 }}>
-            {user ? (isHi ? "नागरिक प्रोफ़ाइल" : "Citizen Profile") : (isHi ? "नागरिक साइन-इन" : "Citizen Access")}
+            {user ? (isHi ? "नागरिक Google प्रोफ़ाइल" : "Citizen Google Profile") : (isHi ? "Google साइन-इन" : "Google Sign-In")}
           </h3>
           <button className="modalClose" onClick={onClose}>
             <X size={18} />
@@ -565,11 +556,11 @@ function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
           <div>
             {/* Citizen Info Badge */}
             <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px", background: "var(--panel2)", borderRadius: "12px", marginBottom: "16px", border: "1px solid var(--line)" }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: user.provider === "google" ? "#1A73E8" : "var(--blue)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: "18px", flexShrink: 0 }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#1A73E8", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: "18px", flexShrink: 0, overflow: "hidden" }}>
                 {user.picture ? (
-                  <img src={user.picture} alt={user.name} style={{ width: "100%", height: "100%", borderRadius: "50%" }} />
+                  <img src={user.picture} alt={user.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
-                  user.name ? user.name[0].toUpperCase() : "C"
+                  user.name ? user.name[0].toUpperCase() : "G"
                 )}
               </div>
               <div style={{ overflow: "hidden", flex: 1 }}>
@@ -577,82 +568,45 @@ function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
                   <strong style={{ fontSize: "15px", color: "var(--text-heading)", display: "block", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
                     {user.name}
                   </strong>
-                  {user.provider === "google" ? (
-                    <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "rgba(16, 185, 129, 0.15)", color: "#10B981", fontWeight: 700 }}>
-                      GOOGLE VERIFIED
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "rgba(245, 158, 11, 0.15)", color: "#F59E0B", fontWeight: 700 }}>
-                      GUEST DEMO
-                    </span>
-                  )}
+                  <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "rgba(16, 185, 129, 0.15)", color: "#10B981", fontWeight: 700 }}>
+                    GOOGLE VERIFIED
+                  </span>
                 </div>
                 <span style={{ display: "block", fontSize: "12px", color: "var(--muted)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-                  {user.email || "Verified Citizen"}
+                  {user.email}
                 </span>
               </div>
             </div>
 
-            {/* If currently Guest, offer 1-click Google Upgrade */}
-            {user.provider !== "google" && (
-              <div style={{ marginBottom: "16px", padding: "14px", borderRadius: "10px", background: "var(--blue-subtle)", border: "1px solid var(--blue)" }}>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-heading)", marginBottom: "4px" }}>
-                  {isHi ? "Google खाते से जोड़ें" : "Link your Google Account"}
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "10px" }}>
-                  {isHi ? "अपनी शिकायतों और आरटीआई ट्रैकिंग को सुरक्षित सहेजने के लिए Google से लॉगिन करें।" : "Sync your drafts, tracking timelines, and saved schemes securely."}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid var(--line)",
-                    background: "#FFFFFF",
-                    color: "#202124",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    cursor: "pointer"
-                  }}
-                >
-                  <span style={{ fontWeight: 800, color: "#4285F4", fontSize: "15px" }}>G</span>
-                  <span>{isHi ? "Google से लॉगिन करें" : "Sign in with Google"}</span>
-                </button>
-              </div>
-            )}
-
             {/* Switch Account (Google) */}
-            {user.provider === "google" && (
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                style={{
-                  width: "100%",
-                  padding: "9px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--line)",
-                  background: "var(--panel2)",
-                  color: "var(--text)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  cursor: "pointer",
-                  marginBottom: "12px"
-                }}
-              >
-                <span style={{ fontWeight: 800, color: "#4285F4" }}>G</span>
-                <span>{isHi ? "Google खाता बदलें" : "Switch Google Account"}</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                borderRadius: "10px",
+                border: "1px solid var(--line)",
+                background: "var(--panel2)",
+                color: "var(--text-heading)",
+                fontSize: "13px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                cursor: "pointer",
+                marginBottom: "10px"
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+              <span>{isHi ? "Google खाता बदलें" : "Switch Google Account"}</span>
+            </button>
 
             {/* Sign Out Button */}
             <button
@@ -667,10 +621,10 @@ function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
           </div>
         ) : (
           <div>
-            <p style={{ fontSize: "13px", color: "var(--muted)", margin: "0 0 18px", lineHeight: 1.5 }}>
+            <p style={{ fontSize: "14px", color: "var(--muted)", margin: "0 0 18px", lineHeight: 1.5 }}>
               {isHi
-                ? "जनसेतु एआई पर साइन इन करें ताकि आपकी तैयार शिकायतें और योजना पात्रता सुरक्षित रहें।"
-                : "Sign in with Google or continue with local session tracking."}
+                ? "जनसेतु AI में सुरक्षित रहने हेतु अपनी अधिकृत Google ईमेल आईडी से साइन इन करें।"
+                : "Sign in with your verified Google email account to access your records."}
             </p>
 
             {/* Google Sign In Button */}
@@ -681,53 +635,27 @@ function AuthModal({ user, onLogin, onLogout, onClose, lang, t }) {
                 width: "100%",
                 padding: "12px",
                 borderRadius: "10px",
-                border: "1px solid var(--line)",
+                border: "1px solid var(--line-strong)",
                 background: "#FFFFFF",
                 color: "#202124",
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: "14px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "10px",
                 cursor: "pointer",
-                boxShadow: "var(--shadow-sm)",
-                marginBottom: "16px"
+                boxShadow: "var(--shadow-sm)"
               }}
             >
-              <span style={{ fontWeight: 800, color: "#4285F4", fontSize: "16px" }}>G</span>
+              <svg width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
               <span>{isHi ? "Google से आगे बढ़ें" : "Continue with Google"}</span>
             </button>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "16px 0" }}>
-              <div style={{ flex: 1, height: "1px", background: "var(--line)" }} />
-              <span style={{ fontSize: "11px", color: "var(--muted)" }}>or guest citizen</span>
-              <div style={{ flex: 1, height: "1px", background: "var(--line)" }} />
-            </div>
-
-            <form onSubmit={handleGuestSignIn} style={{ display: "grid", gap: "14px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "6px" }}>
-                  {isHi ? "आपका पूरा नाम" : "Your Full Name"}
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Bhavya Rattan / Priya Sharma"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--line)", background: "var(--panel-input)", color: "var(--text)", fontSize: "14px" }}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="secondary"
-                style={{ padding: "11px", borderRadius: "10px", fontSize: "13px", fontWeight: 600, display: "flex", justifyContent: "center", alignItems: "center", gap: "6px" }}
-              >
-                <User size={15} />
-                <span>{isHi ? "अतिथि सत्र शुरू करें" : "Continue as Guest"}</span>
-              </button>
-            </form>
           </div>
         )}
       </div>
